@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.FileBrowserController">
+   <center>
+      <BorderPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+         <center>
+            <TableView fx:id="Table" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+              <columns>
+                <TableColumn fx:id="TableFilename" prefWidth="86.20001524686813" text="Filename" />
+                <TableColumn fx:id="TablePermissions" prefWidth="81.80001831054688" text="Permissions" />
+                  <TableColumn fx:id="TableAuthor" prefWidth="74.39996337890625" text="Author" />
+                  <TableColumn fx:id="TableDate" prefWidth="94.40000915527344" text="Date" />
+                  <TableColumn fx:id="TableSize" prefWidth="40.199981689453125" text="Size" />
+              </columns>
+            </TableView>
+         </center>
+         <bottom>
+            <Pagination fx:id="TablePagesIndicator" prefHeight="30.0" prefWidth="450.0" BorderPane.alignment="CENTER" />
+         </bottom>
+      </BorderPane>
+   </center>
+   <left>
+      <Accordion prefHeight="400.0" prefWidth="149.0" BorderPane.alignment="CENTER">
+        <panes>
+          <TitledPane animated="false" prefHeight="375.0" prefWidth="132.0" text="SEND">
+               <font>
+                  <Font name="System Bold" size="12.0" />
+               </font>
+               <content>
+                  <VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="100.0" spacing="10.0">
+                     <children>
+                        <Button fx:id="ChooseFileButtonSend" mnemonicParsing="false" prefHeight="26.0" prefWidth="125.0" text="Choose file" />
+                        <Label text="Filepath" />
+                        <MenuButton fx:id="PermissionsMenuSend" mnemonicParsing="false" prefHeight="26.0" prefWidth="127.0" text="Permissions">
+                          <items>
+                            <MenuItem mnemonicParsing="false" text="Action 1" />
+                            <MenuItem mnemonicParsing="false" text="Action 2" />
+                          </items>
+                        </MenuButton>
+                        <Label text="Permissions" />
+                        <Button fx:id="ButtonSend" mnemonicParsing="false" prefHeight="26.0" prefWidth="125.0" text="Send" />
+                        <ProgressBar fx:id="SendingProgressBarSend" prefWidth="200.0" progress="0.0" />
+                     </children>
+                  </VBox>
+               </content>
+            </TitledPane>
+          <TitledPane animated="false" text="DOWNLOAD">
+               <font>
+                  <Font name="System Bold" size="12.0" />
+               </font>
+            </TitledPane>
+        </panes>
+      </Accordion>
+   </left>
+</BorderPane>
