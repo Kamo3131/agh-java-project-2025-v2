@@ -1,0 +1,118 @@
+package server;
+
+import server.db_objects.SavedFile;
+import server.db_objects.User;
+import common.messages.FileDownloadMessage;
+import common.messages.FileUploadMessage;
+import common.messages.LoginValidationMessage;
+import common.messages.UserLoginMessage;
+import common.PermissionsEnum;
+import common.TCPCommunicator;
+
+import java.io.File;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.UUID;
+
+public class ServerInstance {
+    private final TCPCommunicator communicator;
+    private final DatabaseORM db;
+
+    ServerInstance(TCPCommunicator communicator) throws SQLException {
+        this.communicator = communicator;
+        this.db = new DatabaseORM();
+    }
+
+    public void run() throws IOException, SQLException, ClassNotFoundException {
+        while (true) {
+            TCPCommunicator.MessageType type = (TCPCommunicator.MessageType)this.communicator.receiveMessage();
+
+            switch (type) {
+                case LOGIN:
+                    UserLoginMessage user_login = (UserLoginMessage)this.communicator.receiveMessage();
+                    this.handleUserLogin(user_login);
+
+                    break;
+                case REGISTER:
+                    UserLoginMessage user_register = (UserLoginMessage)this.communicator.receiveMessage();
+                    this.handleUserRegistration(user_register);
+
+                    break;
+                case FILE_UPLOAD:
+                    FileUploadMessage file_upload = (FileUploadMessage)this.communicator.receiveMessage();
+                    this.handleFileUpload(file_upload);
+
+                    break;
+                case FILE_DOWNLOAD:
+                    FileDownloadMessage file_download = (FileDownloadMessage)this.communicator.receiveMessage();
+                    this.handleFileDownload(file_download);
+
+                    break;
+            }
+        }
+    }
+
+    private void handleUserLogin(UserLoginMessage user_login) throws IOException, SQLException {
+        // TODO check password hash
+        System.out.println(user_login.username());
+        System.out.println(user_login.password());
+        System.out.println(user_login.salt());
+
+        User u = this.db.getUser(user_login.username());
+
+        LoginValidationMessage validation;
+
+        if (u != null) {
+            validation = new LoginValidationMessage(true, "", u.id());
+        }
+        else {
+            validation = new LoginValidationMessage(false, "UserNotFound", "");
+        }
+
+        this.communicator.sendMessage(validation);
+    }
+
+    private void handleUserRegistration(UserLoginMessage user_register) throws IOException, SQLException {
+        // TODO
+        System.out.println("registering");
+
+        String uuid = UUID.randomUUID().toString();
+
+        User new_user = new User(uuid, user_register.username(), user_register.password(), user_register.salt());
+        this.db.insertUser(new_user);
+
+        LoginValidationMessage registration = new LoginValidationMessage(true, "", uuid);
+        this.communicator.sendMessage(registration);
+    }
+
+    private void handleFileUpload(FileUploadMessage file_upload) throws IOException, SQLException {
+        System.out.println(file_upload.userID());
+
+        this.communicator.receiveAndSaveFile("saved_files/" + file_upload.filename());
+
+        SavedFile saved_file = new SavedFile(file_upload.userID(), file_upload.filename(), file_upload.contentType(), file_upload.permission(), file_upload.size(), "saved_files/" + file_upload.filename());
+        this.db.insertSavedFile(saved_file);
+    }
+
+    private void handleFileDownload(FileDownloadMessage file_download) throws IOException, SQLException {
+        SavedFile saved_file = this.db.getSavedFile(file_download.filename());
+
+        String file_path = saved_file.path();
+        File file;
+
+        switch (saved_file.permission()) {
+            case PermissionsEnum.PUBLIC:
+                ;
+            case PermissionsEnum.PROTECTED:
+                file = new File(file_path);
+                this.communicator.sendFile(file);
+                break;
+            case PermissionsEnum.PRIVATE:
+                if (saved_file.userID().equals(file_download.userID())) {
+                    file = new File(file_path);
+                    this.communicator.sendFile(file);
+                }
+                break;
+        }
+    }
+}

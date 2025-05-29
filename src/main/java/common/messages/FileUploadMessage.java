@@ -1,0 +1,8 @@
+package common.messages;
+
+import common.PermissionsEnum;
+
+import java.io.Serializable;
+
+public record FileUploadMessage(String filename, String userID, String contentType, PermissionsEnum permission,
+                                long size) implements Serializable {}
