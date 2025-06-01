@@ -1,5 +1,6 @@
 package client;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -67,8 +68,9 @@ public class ZipCompress {
      * @param zipFile The name or path of the output ZIP file.
      * @throws IOException if an I/O error occurs during compression.
      */
-    public void compress(String zipFile) throws IOException {
-        try (ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zipFile))) {
+    public long compress(String zipFile) throws IOException {
+        File outputFile = new File(zipFile);
+        try (ZipOutputStream out = new ZipOutputStream(new FileOutputStream(outputFile))) {
             for (String t : sourceFiles) {
                 FileInputStream in = new FileInputStream(t);
                 try {
@@ -81,7 +83,9 @@ public class ZipCompress {
                 } catch (IOException e) {
                     System.out.println("IOException occurred!");
                 }
+                return outputFile.length();
             }
         }
+        return 0;
     }
 }
