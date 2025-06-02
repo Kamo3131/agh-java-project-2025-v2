@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.zip.ZipEntry;
@@ -37,6 +38,12 @@ public class ZipCompress {
         }
     }
 
+    public ArrayList<String> getSourceFiles() {
+        return sourceFiles;
+    }
+    public void clearSourceFiles() {
+        sourceFiles.clear();
+    }
     /**
      * Removes one or more files from the source file list.
      *
@@ -68,13 +75,14 @@ public class ZipCompress {
      * @param zipFile The name or path of the output ZIP file.
      * @throws IOException if an I/O error occurs during compression.
      */
-    public long compress(String zipFile) throws IOException {
+    public File compress(String zipFile) throws IOException {
         File outputFile = new File(zipFile);
         try (ZipOutputStream out = new ZipOutputStream(new FileOutputStream(outputFile))) {
             for (String t : sourceFiles) {
+                File file = new File(t);
                 FileInputStream in = new FileInputStream(t);
                 try {
-                    out.putNextEntry(new ZipEntry(t));
+                    out.putNextEntry(new ZipEntry(file.getName()));
                     int c;
                     while ((c = in.read()) != -1) {
                         out.write(c);
@@ -83,9 +91,9 @@ public class ZipCompress {
                 } catch (IOException e) {
                     System.out.println("IOException occurred!");
                 }
-                return outputFile.length();
+
             }
+            return outputFile;
         }
-        return 0;
     }
 }

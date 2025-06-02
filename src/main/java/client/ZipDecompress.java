@@ -23,7 +23,6 @@ public class ZipDecompress{
         if(!destDir.exists()){
             destDir.mkdirs();
         }
-
         try(ZipInputStream in = new ZipInputStream(new FileInputStream(inputFile))){
             ZipEntry entry;
             while((entry = in.getNextEntry()) != null){
@@ -45,8 +44,11 @@ public class ZipDecompress{
                     while((d = in.read())!=-1){
                         fos.write(d);
                     }
+
                 }
             }
+        }catch(IOException e){
+            System.out.println(e);
         }
     }
 }

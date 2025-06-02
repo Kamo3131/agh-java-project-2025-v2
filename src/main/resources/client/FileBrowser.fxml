@@ -3,7 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.FileBrowserController">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="450.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.FileBrowserController">
    <center>
       <BorderPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
          <left>
@@ -12,29 +12,28 @@
                   <VBox alignment="TOP_CENTER" layoutX="22.0" layoutY="31.0" prefHeight="312.0" prefWidth="266.0" spacing="10.0">
                      <children>
                         <Button fx:id="ChooseFileButtonSend" mnemonicParsing="false" onAction="#userFileChoosing" prefHeight="26.0" prefWidth="206.0" text="Choose file" textAlignment="CENTER" />
-                        <Label fx:id="filePathLabel" text="Filepath" />
+                        <Button fx:id="RemoveFilesButton" mnemonicParsing="false" onAction="#userRemoveFiles" prefHeight="26.0" prefWidth="206.0" text="Clear files" />
                         <MenuButton fx:id="PermissionsMenuSend" mnemonicParsing="false" onAction="#setPermissions" prefHeight="26.0" prefWidth="206.0" text="Permissions" />
                         <Label fx:id="permissionsLabel" text="Permissions" />
                         <Button fx:id="ButtonSend" mnemonicParsing="false" prefHeight="26.0" prefWidth="206.0" text="Send" />
                         <ProgressBar fx:id="SendingProgressBarSend" prefWidth="200.0" progress="0.0" />
+                        <VBox fx:id="filePathLabels" alignment="TOP_CENTER" prefHeight="0.0" prefWidth="266.0" />
                      </children>
                   </VBox>
                </children></Pane>
          </left>
          <center>
             <VBox prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
-               <children>
-                  <TableView fx:id="Table" prefHeight="388.0" prefWidth="490.0">
+                  <TableView fx:id="table" prefHeight="388.0" prefWidth="490.0">
                     <columns>
-                      <TableColumn fx:id="TableFilename" prefWidth="86.20001524686813" text="Filename" />
-                      <TableColumn fx:id="TablePermissions" prefWidth="81.80001831054688" text="Permissions" />
-                        <TableColumn fx:id="TableAuthor" prefWidth="74.39996337890625" text="Author" />
-                        <TableColumn fx:id="TableDate" prefWidth="94.40000915527344" text="Date" />
-                        <TableColumn fx:id="TableSize" prefWidth="40.199981689453125" text="Size" />
+                      <TableColumn fx:id="tableFilename" prefWidth="86.20001524686813" text="Filename" />
+                      <TableColumn fx:id="tablePermissions" prefWidth="81.80001831054688" text="Permissions" />
+                        <TableColumn fx:id="tableAuthor" prefWidth="74.39996337890625" text="Author" />
+                        <TableColumn fx:id="tableDate" prefWidth="145.79998779296875" text="Date" />
+                        <TableColumn fx:id="tableSize" prefWidth="44.5999755859375" text="Size" />
                     </columns>
                   </TableView>
-                  <Pagination fx:id="TablePagesIndicator" prefHeight="30.0" prefWidth="450.0" />
-               </children>
+                  <Pagination fx:id="TablePagesIndicator" prefHeight="48.0" prefWidth="490.0" />
             </VBox>
          </center>
       </BorderPane>

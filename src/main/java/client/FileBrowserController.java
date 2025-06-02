@@ -4,9 +4,13 @@ import common.FileModel;
 import common.PermissionsEnum;
 import common.TCPCommunicator;
 import common.messages.FileUploadMessage;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -16,10 +20,12 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.LinkedList;
 
 public class FileBrowserController {
 
     private int port_number;
+    private User user;
     @FXML
     private Button ChooseFileButtonSend;
 
@@ -32,35 +38,75 @@ public class FileBrowserController {
     private ProgressBar SendingProgressBarSend;
 
     @FXML
-    private Label filePathLabel;
+    private VBox filePathLabels;
     @FXML
     private Label permissionsLabel;
 
 
     @FXML
-    private TableView<FileModel> Table;
+    private TableView<FileModel> table;
     @FXML
-    private TableColumn<FileModel, String> TableFilename;
+    private TableColumn<FileModel, String> tableFilename;
     @FXML
-    private TableColumn<FileModel, String> TableAuthor;
+    private TableColumn<FileModel, String> tableAuthor;
     @FXML
-    private TableColumn<FileModel, LocalDateTime> TableDate;
+    private TableColumn<FileModel, String> tableDate;
     @FXML
-    private TableColumn<FileModel, PermissionsEnum> TablePermissions;
+    private TableColumn<FileModel, PermissionsEnum> tablePermissions;
     @FXML
-    private TableColumn<FileModel, Double> TableSize;
+    private TableColumn<FileModel, Double> tableSize;
+    private static final int MAX_ROWS_PER_PAGE = 15;
 
     @FXML
     private Pagination TablePagesIndicator;
+//    private LinkedList<FileModel> files = new LinkedList<>();
+    private ObservableList<FileModel> files = FXCollections.observableArrayList();
 
     private File fileToSend;
     private PermissionsEnum permissions;
+    private final ZipCompress zipCompress = new ZipCompress();
     @FXML
     private void initialize() {
-        this.filePathLabel.setVisible(false);
         this.permissionsLabel.setVisible(false);
         setPermissions();
+        setTable();
+        addFiles();
+//        files.forEach(System.out::println);
+        updatePagination();
     }
+
+    private void updatePagination(){
+        int pageCount = (int) Math.ceil((double) files.size() / MAX_ROWS_PER_PAGE);
+        if (pageCount == 0) pageCount = 1;
+        TablePagesIndicator.setPageCount(pageCount);
+        TablePagesIndicator.setCurrentPageIndex(0);
+        TablePagesIndicator.setPageFactory(this::createPage);
+    }
+    private Node createPage(int pageIndex){
+        int fromIndex = pageIndex * MAX_ROWS_PER_PAGE;
+        int toIndex = Math.min(fromIndex + MAX_ROWS_PER_PAGE, files.size());
+        ObservableList<FileModel> pageItems = FXCollections.observableArrayList(
+                files.subList(fromIndex, toIndex)
+        );
+        pageItems.forEach(System.out::println);
+        table.setItems(pageItems);
+        return new VBox();
+    }
+
+    private void addFiles() {
+        for(int i=0; i<20; i++) {
+            files.add(new FileModel("Albert.txt", "Kacper", PermissionsEnum.PUBLIC, LocalDateTime.now(), 2.6));
+        }
+        updatePagination();
+    }
+    private void setTable(){
+        tableFilename.setCellValueFactory(new PropertyValueFactory<>("Filename"));
+        tablePermissions.setCellValueFactory(new PropertyValueFactory<>("Permissions"));
+        tableAuthor.setCellValueFactory(new PropertyValueFactory<>("Author"));
+        tableDate.setCellValueFactory(new PropertyValueFactory<>("Date"));
+        tableSize.setCellValueFactory(new PropertyValueFactory<>("Size"));
+    }
+
     @FXML
     private void setPermissions(){
         final MenuItem publicPermission = new MenuItem("PUBLIC");
@@ -87,17 +133,14 @@ public class FileBrowserController {
         });
         PermissionsMenuSend.getItems().addAll(publicPermission, privatePermission, protectedPermission);
     }
-    public void sendingAFile(User user){handleSending(user);};
+    public void sendingAFile(){handleSending();};
 
     public void setPort_number(int port_number) {
         this.port_number = port_number;
     }
 
-    public void setFilePathLabel(String filePathLabel, boolean set_visible) {
-        this.filePathLabel.setText(filePathLabel);
-        if(set_visible) {
-            this.filePathLabel.setVisible(true);
-        }
+    public void setFilePathLabel(String filePathLabel) {
+        filePathLabels.getChildren().add(new Label(filePathLabel));
     }
 
     public void userFileChoosing(){handleChooseFileButtonSending();}
@@ -106,47 +149,33 @@ public class FileBrowserController {
         FileChooser fileChooser = new FileChooser();
         fileToSend = fileChooser.showOpenDialog(window);
         String path = fileToSend.getAbsolutePath();
-        setFilePathLabel(fileToSend.getAbsolutePath(), true);
+        zipCompress.addSourceFiles(path);
+        setFilePathLabel(fileToSend.getAbsolutePath());
     }
-    public void userPermissionsChoosing(){handleChoosingPermissions(); permissionsLabel.setVisible(true);}
-    private void handleChoosingPermissions() {
-        permissions = switch (PermissionsMenuSend.getText()){
-            case "PUBLIC" -> {
-                PermissionsMenuSend.setText("PUBLIC");
-                yield PermissionsEnum.PUBLIC;
-            }
-            case "PRIVATE" -> {
-                PermissionsMenuSend.setText("PRIVATE");
-                yield PermissionsEnum.PRIVATE;
-            }
-            case "PROTECTED" -> {
-                PermissionsMenuSend.setText("PROTECTED");
-                yield PermissionsEnum.PROTECTED;
-            }
-            default -> {
-                throw new IllegalArgumentException("Invalid permissions");
-            }
-        };
 
+    public void userRemoveFiles(){handleRemoveFiles();}
+    private void handleRemoveFiles(){
+        zipCompress.clearSourceFiles();
+        filePathLabels.getChildren().clear();
     }
-    private void handleSending(User user){
-        ZipCompress zipCompress = new ZipCompress();
-        zipCompress.addSourceFiles(fileToSend.getAbsolutePath());
-        try {
-            long fileSize = zipCompress.compress(fileToSend.getName()+".zip");
-            FileUploadMessage fileUploadMessage =
-                    new FileUploadMessage(fileToSend.getName(), user.id(), "File/s",
-                            permissions, fileSize);
-        } catch(IOException ex){
-            System.out.println(ex.getMessage());
-            System.exit(1);
-        }
+    private void handleSending(){
 
-        try{
-            TCPCommunicator.startClient(port_number);
-        } catch(java.io.IOException ex){
-            System.err.println(ex.getMessage());
-        }
+
+//        try {
+//            long fileSize = zipCompress.compress(fileToSend.getName()+".zip");
+//            FileUploadMessage fileUploadMessage =
+//                    new FileUploadMessage(fileToSend.getName(), user.id(), "File/s",
+//                            permissions, fileSize);
+//        } catch(IOException ex){
+//            System.out.println(ex.getMessage());
+//            System.exit(1);
+//        }
+//
+//        try{
+//            TCPCommunicator.startClient(port_number);
+//        } catch(java.io.IOException ex){
+//            System.err.println(ex.getMessage());
+//        }
     }
 
 
