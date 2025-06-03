@@ -1,12 +1,18 @@
 package client;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.stage.Stage;
 
 import java.awt.event.ActionEvent;
+import java.io.IOException;
+import java.util.Objects;
 
 public class SignLogController {
-
     // Logowanie
     @FXML
     private TextField LoginLogin;
@@ -92,6 +98,11 @@ public class SignLogController {
             HollowSignLabel.setVisible(false);
             HollowSignSuccesLabel.setText("Sign up has been successful!");
             HollowSignSuccesLabel.setVisible(true);
+            try {
+                switchToFileBrowser();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         } else if (SignPassword.getText().length()<8) {
             System.out.println("SignUp Error");
             HollowSignLabel.setText("Wrong password");
@@ -109,5 +120,15 @@ public class SignLogController {
             HollowSignSuccesLabel.setVisible(false);
         }
         // Logika rejestracji
+    }
+
+    public void switchToFileBrowser() throws IOException {
+        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("FileBrowser.fxml")));
+        Stage stage = (Stage) LogInButton.getScene().getWindow();
+        Scene scene = new Scene(root);
+        stage.setTitle("FileBrowser");
+        stage.setScene(scene);
+        stage.setResizable(false);
+        stage.show();
     }
 }

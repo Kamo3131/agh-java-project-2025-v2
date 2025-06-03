@@ -7,7 +7,10 @@ import common.messages.FileUploadMessage;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
@@ -21,6 +24,8 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 
 public class FileBrowserController {
 
@@ -41,7 +46,8 @@ public class FileBrowserController {
     private VBox filePathLabels;
     @FXML
     private Label permissionsLabel;
-
+    @FXML
+    private Button LogOutButton;
 
     @FXML
     private TableView<FileModel> table;
@@ -62,9 +68,10 @@ public class FileBrowserController {
 //    private LinkedList<FileModel> files = new LinkedList<>();
     private ObservableList<FileModel> files = FXCollections.observableArrayList();
 
-    private File fileToSend;
+    private List<File> filesToSend;
     private PermissionsEnum permissions;
     private final ZipCompress zipCompress = new ZipCompress();
+
     @FXML
     private void initialize() {
         this.permissionsLabel.setVisible(false);
@@ -88,7 +95,7 @@ public class FileBrowserController {
         ObservableList<FileModel> pageItems = FXCollections.observableArrayList(
                 files.subList(fromIndex, toIndex)
         );
-        pageItems.forEach(System.out::println);
+//        pageItems.forEach(System.out::println);
         table.setItems(pageItems);
         return new VBox();
     }
@@ -140,17 +147,21 @@ public class FileBrowserController {
     }
 
     public void setFilePathLabel(String filePathLabel) {
-        filePathLabels.getChildren().add(new Label(filePathLabel));
+        filePathLabels.getChildren().addFirst(new Label(filePathLabel));
     }
 
     public void userFileChoosing(){handleChooseFileButtonSending();}
     private void handleChooseFileButtonSending(){
         Window window = ChooseFileButtonSend.getScene().getWindow();
         FileChooser fileChooser = new FileChooser();
-        fileToSend = fileChooser.showOpenDialog(window);
-        String path = fileToSend.getAbsolutePath();
-        zipCompress.addSourceFiles(path);
-        setFilePathLabel(fileToSend.getAbsolutePath());
+        filesToSend = fileChooser.showOpenMultipleDialog(window);
+        for(File file : filesToSend){
+            String path = file.getAbsolutePath();
+            zipCompress.addSourceFiles(path);
+            setFilePathLabel(path);
+        }
+
+
     }
 
     public void userRemoveFiles(){handleRemoveFiles();}
@@ -178,5 +189,14 @@ public class FileBrowserController {
 //        }
     }
 
+    public void handleLogOut() throws IOException{
+        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("SignLog.fxml")));
+        Stage stage = (Stage) LogOutButton.getScene().getWindow();
+        Scene scene = new Scene(root);
+        stage.setTitle("SignLog");
+        stage.setScene(scene);
+        stage.setResizable(false);
+        stage.show();
+    }
 
 }
