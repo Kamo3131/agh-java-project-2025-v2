@@ -54,6 +54,12 @@ public class ZipCompress {
             sourceFiles.remove(a);
         }
     }
+    /**
+     * @return Returns number of files in SourceFiles.
+     */
+    public int sizeSourceFiles() {
+        return sourceFiles.size();
+    }
 
     /**
      * Returns a string representation of the source file list.

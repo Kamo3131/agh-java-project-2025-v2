@@ -14,6 +14,10 @@ public class HashPassword {
     private final int iterations;
     private final int keyLength;
 
+
+    public byte[] getSalt(){
+        return salt;
+    }
     public HashPassword(String password, int saltLength, int iterations, int keyLength) {
         this.password = password.toCharArray();
         this.salt = generateSalt(saltLength);

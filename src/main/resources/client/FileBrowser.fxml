@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="475.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.FileBrowserController">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="475.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.FileBrowserController">
    <center>
       <BorderPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
          <left>
@@ -13,10 +14,16 @@
                      <children>
                         <Button fx:id="ChooseFileButtonSend" mnemonicParsing="false" onAction="#userFileChoosing" prefHeight="26.0" prefWidth="206.0" text="Choose file" textAlignment="CENTER" />
                         <Button fx:id="RemoveFilesButton" mnemonicParsing="false" onAction="#userRemoveFiles" prefHeight="26.0" prefWidth="206.0" text="Clear files" />
+                        <Pane prefHeight="39.0" prefWidth="224.0">
+                           <children>
+                              <TextField fx:id="newFilename" layoutX="29.0" layoutY="7.0" prefHeight="25.0" prefWidth="206.0" promptText="Archive name . . ." />
+                           </children>
+                        </Pane>
                         <MenuButton fx:id="PermissionsMenuSend" mnemonicParsing="false" onAction="#setPermissions" prefHeight="26.0" prefWidth="206.0" text="Permissions" />
                         <Label fx:id="permissionsLabel" text="Permissions" />
-                        <Button fx:id="ButtonSend" mnemonicParsing="false" prefHeight="26.0" prefWidth="206.0" text="Send" />
+                        <Button fx:id="ButtonSend" mnemonicParsing="false" onAction="#sendingAFile" prefHeight="26.0" prefWidth="206.0" text="Send" />
                         <ProgressBar fx:id="SendingProgressBarSend" prefWidth="200.0" progress="0.0" />
+                        <Label fx:id="compressionLabel" text="Compression" />
                         <VBox fx:id="filePathLabels" alignment="TOP_CENTER" prefHeight="0.0" prefWidth="266.0" />
                      </children>
                   </VBox>
@@ -26,11 +33,11 @@
             <VBox prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
                   <TableView fx:id="table" prefHeight="388.0" prefWidth="490.0">
                     <columns>
-                      <TableColumn fx:id="tableFilename" prefWidth="86.20001524686813" text="Filename" />
-                      <TableColumn fx:id="tablePermissions" prefWidth="81.80001831054688" text="Permissions" />
-                        <TableColumn fx:id="tableAuthor" prefWidth="74.39996337890625" text="Author" />
-                        <TableColumn fx:id="tableDate" prefWidth="145.79998779296875" text="Date" />
-                        <TableColumn fx:id="tableSize" prefWidth="44.5999755859375" text="Size" />
+                      <TableColumn fx:id="tableFilename" prefWidth="167.79999387264252" text="Filename" />
+                      <TableColumn fx:id="tablePermissions" prefWidth="116.20001220703125" text="Permissions" />
+                        <TableColumn fx:id="tableAuthor" prefWidth="87.0" text="Author" />
+                        <TableColumn fx:id="tableDate" prefWidth="198.99996948242188" text="Date" />
+                        <TableColumn fx:id="tableSize" prefWidth="68.0" text="Size" />
                     </columns>
                   </TableView>
                   <Pagination fx:id="TablePagesIndicator" prefHeight="48.0" prefWidth="490.0" />
@@ -42,6 +49,12 @@
       <ToolBar prefHeight="11.0" prefWidth="800.0" BorderPane.alignment="CENTER">
         <items>
           <Button fx:id="LogOutButton" mnemonicParsing="false" onAction="#handleLogOut" prefHeight="26.0" prefWidth="79.0" text="Log out" />
+            <ImageView fitHeight="26.0" fitWidth="26.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@user.png" />
+               </image>
+            </ImageView>
+            <Label fx:id="usernameLabel" text="Username" />
         </items>
       </ToolBar>
    </top>
