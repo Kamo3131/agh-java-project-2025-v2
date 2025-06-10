@@ -7,7 +7,7 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import javafx.scene.layout.AnchorPane;
 
-public class SignLog extends Application {
+public class FileBrowser extends Application {
 
     public static void main(String[] args) {
         launch();
@@ -15,11 +15,13 @@ public class SignLog extends Application {
 
     @Override
     public void start(Stage primaryStage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(SignLog.class.getResource("SignLog.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(FileBrowser.class.getResource("FileBrowser.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
-        primaryStage.setTitle("SignWindow");
+        primaryStage.setTitle("FileBrowser");
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
         primaryStage.show();
+
+
     }
 }
