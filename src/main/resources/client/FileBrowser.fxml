@@ -12,7 +12,7 @@
                <children>
                   <VBox alignment="TOP_CENTER" layoutX="22.0" layoutY="31.0" prefHeight="312.0" prefWidth="266.0" spacing="10.0">
                      <children>
-                        <Button fx:id="ChooseFileButtonSend" mnemonicParsing="false" onAction="#userFileChoosing" prefHeight="26.0" prefWidth="206.0" text="Choose file" textAlignment="CENTER" />
+                        <Button fx:id="AddFileButtonSend" mnemonicParsing="false" onAction="#userFileAdding" prefHeight="26.0" prefWidth="206.0" text="Add files" textAlignment="CENTER" />
                         <Button fx:id="RemoveFilesButton" mnemonicParsing="false" onAction="#userRemoveFiles" prefHeight="26.0" prefWidth="206.0" text="Clear files" />
                         <Pane prefHeight="39.0" prefWidth="224.0">
                            <children>
@@ -21,7 +21,7 @@
                         </Pane>
                         <MenuButton fx:id="PermissionsMenuSend" mnemonicParsing="false" onAction="#setPermissions" prefHeight="26.0" prefWidth="206.0" text="Permissions" />
                         <Label fx:id="permissionsLabel" text="Permissions" />
-                        <Button fx:id="ButtonSend" mnemonicParsing="false" onAction="#sendingAFile" prefHeight="26.0" prefWidth="206.0" text="Send" />
+                        <Button fx:id="ButtonSend" mnemonicParsing="false" onAction="#userSendingAFile" prefHeight="26.0" prefWidth="206.0" text="Send" />
                         <ProgressBar fx:id="SendingProgressBarSend" prefWidth="200.0" progress="0.0" />
                         <Label fx:id="compressionLabel" text="Compression" />
                         <VBox fx:id="filePathLabels" alignment="TOP_CENTER" prefHeight="0.0" prefWidth="266.0" />
@@ -37,7 +37,7 @@
                       <TableColumn fx:id="tablePermissions" prefWidth="116.20001220703125" text="Permissions" />
                         <TableColumn fx:id="tableAuthor" prefWidth="87.0" text="Author" />
                         <TableColumn fx:id="tableDate" prefWidth="198.99996948242188" text="Date" />
-                        <TableColumn fx:id="tableSize" prefWidth="68.0" text="Size" />
+                        <TableColumn fx:id="tableSize" prefWidth="75.0" text="Size" />
                     </columns>
                   </TableView>
                   <Pagination fx:id="TablePagesIndicator" prefHeight="48.0" prefWidth="490.0" />

@@ -22,8 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Controller class for the File Browser view.
@@ -31,9 +30,10 @@ import java.util.Objects;
  */
 public class FileBrowserController {
 
+
     private int port_number;
     private String username;
-    @FXML private Button ChooseFileButtonSend;
+    @FXML private Button AddFileButtonSend;
     @FXML private MenuButton PermissionsMenuSend;
     @FXML private Button ButtonSend;
     @FXML private ProgressBar SendingProgressBarSend;
@@ -49,6 +49,7 @@ public class FileBrowserController {
     @FXML private TableColumn<FileModel, String> tableDate;
     @FXML private TableColumn<FileModel, PermissionsEnum> tablePermissions;
     @FXML private TableColumn<FileModel, Double> tableSize;
+
     @FXML private Pagination TablePagesIndicator;
 
     private static final int MAX_ROWS_PER_PAGE = 15;
@@ -58,6 +59,7 @@ public class FileBrowserController {
     private List<File> filesToSendTemp;
     private PermissionsEnum permissions;
     private final ZipCompress zipCompress = new ZipCompress();
+    private String basicOutDirName = "OutDir";
 
 
     /**
@@ -77,6 +79,14 @@ public class FileBrowserController {
     public String getUser(){
         return username;
     }
+
+    /**
+     * Returns ObservableList from tableview table.
+     * @return ObservableList of tableview's items.
+     */
+    private ObservableList<FileModel> getFiles(){
+        return table.getItems();
+    }
     /**
      * Initializes the controller after its root element has been completely processed.
      */
@@ -87,6 +97,29 @@ public class FileBrowserController {
         setPermissions();
         setTable();
         updatePagination();
+        //Line below checks if a basic directory exists, then exports all
+        //files from this dir to List<File> and puts this List in the tableview
+        addFiles(getFilesFromDirectory(createBasicDirectory()));
+    }
+
+    private File createBasicDirectory(){
+        File directory = new File(basicOutDirName);
+        if(!directory.exists()){
+            if(directory.mkdir()){
+                System.out.println("Directory created");
+            }
+            else{
+                System.err.println("Directory not created");
+            }
+        }
+        else{
+            System.out.println("Directory already exists");
+        }
+        return directory;
+    }
+
+    private List<File> getFilesFromDirectory(File directory){
+        return new ArrayList<>(Arrays.asList(Objects.requireNonNull(directory.listFiles())));
     }
     /**
      * Updates pagination based on the number of files.
@@ -144,6 +177,8 @@ public class FileBrowserController {
                 files.subList(0, Math.min(MAX_ROWS_PER_PAGE, files.size()))
         ));
     }
+
+
     /**
      * Sets up the table columns and formatting.
      */
@@ -199,7 +234,7 @@ public class FileBrowserController {
     /**
      * Public method to trigger file compression and sending.
      */
-    public void sendingAFile(){handleSending();};
+    public void userSendingAFile(){handleSending();};
     /**
      * Sets the port number for network operations.
      * @param port_number port number to use
@@ -217,15 +252,15 @@ public class FileBrowserController {
     }
 
     /**
-     * Public method to trigger the file chooser dialog.
+     * Public method to trigger the file adder dialog.
      */
-    public void userFileChoosing(){handleChooseFileButtonSending();}
+    public void userFileAdding(){handleAddFileButtonSending();}
 
     /**
-     * Opens file chooser dialog and collects files to be compressed.
+     * Opens file adder dialog and collects files to be compressed.
      */
-    private void handleChooseFileButtonSending(){
-        Window window = ChooseFileButtonSend.getScene().getWindow();
+    private void handleAddFileButtonSending(){
+        Window window = AddFileButtonSend.getScene().getWindow();
         FileChooser fileChooser = new FileChooser();
         filesToSend = fileChooser.showOpenMultipleDialog(window);
         filesToSendTemp = filesToSend;
@@ -256,6 +291,26 @@ public class FileBrowserController {
         permissionsLabel.setVisible(false);
         compressionLabel.setVisible(false);
     }
+
+    private String fileNaming() {
+        String newFilenameString = newFilename.getText();
+        if (newFilenameString == null || newFilenameString.isEmpty()) {
+            newFilenameString = "NewArchive";
+        }
+        Set<String> existingFilenames = new HashSet<>();
+        for (FileModel file : files){
+            existingFilenames.add(file.getBaseName());
+        }
+        int copyIndex = 0;
+        String temp = newFilenameString;
+        while(existingFilenames.contains(temp)) {
+            copyIndex++;
+            temp = newFilenameString + "(" + copyIndex + ")";
+        }
+        return temp;
+    }
+
+
     /**
      * Handles file compression and updates the table upon success.
      */
@@ -267,16 +322,13 @@ public class FileBrowserController {
             compressionLabel.setText("There are no files to send.");
             compressionLabel.setVisible(true);
         }else {
-            String newFilenameString = newFilename.getText();
-            if (newFilenameString == null || newFilenameString.isEmpty()) {
-                newFilenameString = "NewArchive";
-            }
-
-            String finalNewFilename = newFilenameString;
+            files = getFiles();
+//            files.forEach(System.out::println);
+            String finalNewFilename = fileNaming();
             Task<File> compressionTask = new Task<>() {
                 @Override
                 protected File call() throws Exception {
-                    return zipCompress.compress(finalNewFilename + ".zip");
+                    return zipCompress.compress(basicOutDirName+"/"+finalNewFilename + ".zip");
                 }
             };
 

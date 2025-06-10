@@ -1,5 +1,6 @@
 package common;
 
+import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -35,5 +36,13 @@ public class FileModel {
     }
     public String toString() {
         return "Filename: "+fileName+", Author: "+fileAuthor+", Permissions: "+permissions+", Date: "+lastModified;
+    }
+    public String getBaseName(){
+        String filename = getFilename();
+        int index = filename.lastIndexOf('.');
+        if (index != -1) {
+            filename = filename.substring(0, index);
+        }
+        return filename;
     }
 }
