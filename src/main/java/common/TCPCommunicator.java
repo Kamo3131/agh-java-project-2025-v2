@@ -13,7 +13,8 @@ public class TCPCommunicator {
         LOGIN,
         REGISTER,
         FILE_UPLOAD,
-        FILE_DOWNLOAD
+        FILE_DOWNLOAD,
+        GET_FILE_LIST,
     }
 
     private TCPCommunicator(int port, boolean is_server) throws IOException {

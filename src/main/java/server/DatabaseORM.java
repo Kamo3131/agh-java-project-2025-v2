@@ -5,6 +5,8 @@ import server.db_objects.User;
 import common.PermissionsEnum;
 
 import java.sql.*;
+import java.util.List;
+import java.util.ArrayList;
 
 public class DatabaseORM {
     private static Connection connection;
@@ -23,7 +25,7 @@ public class DatabaseORM {
         ResultSet rs = stmt.executeQuery();
 
         if (rs.next()) {
-            return new User(rs.getString("id"), rs.getString("username"), rs.getString("password"), rs.getString("salt"));
+            return new User(rs.getString("id"), rs.getString("username"), rs.getString("password"));
         }
         else {
             return null;
@@ -31,12 +33,11 @@ public class DatabaseORM {
     }
 
     public void insertUser(User user) throws SQLException {
-        PreparedStatement stmt = connection.prepareStatement("INSERT INTO USERS (id, username, password, salt) VALUES (?, ?, ?, ?)");
+        PreparedStatement stmt = connection.prepareStatement("INSERT INTO USERS (id, username, password) VALUES (?, ?, ?)");
 
         stmt.setString(1, user.id());
         stmt.setString(2, user.username());
         stmt.setString(3, user.password());
-        stmt.setString(4, user.salt());
 
         stmt.executeUpdate();
     }
@@ -48,7 +49,7 @@ public class DatabaseORM {
         ResultSet rs = stmt.executeQuery();
 
         if (rs.next()) {
-            return new SavedFile(rs.getString("uploader_id"), rs.getString("filename"), rs.getString("content_type"), PermissionsEnum.valueOf(rs.getString("permission_type")), rs.getLong("size"), rs.getString("path"));
+            return new SavedFile(rs.getString("uploader_id"), rs.getString("filename"), rs.getString("content_type"), PermissionsEnum.valueOf(rs.getString("permission_type")), rs.getLong("size"), rs.getString("path"), rs.getLong("date"));
         }
         else {
             return null;
@@ -56,7 +57,7 @@ public class DatabaseORM {
     }
 
     public void insertSavedFile(SavedFile savedFile) throws SQLException {
-        PreparedStatement stmt = connection.prepareStatement("INSERT INTO FILES (uploader_id, filename, content_type, permission_type, size, path) VALUES (?, ?, ?, ?, ?, ?)");
+        PreparedStatement stmt = connection.prepareStatement("INSERT INTO FILES (uploader_id, filename, content_type, permission_type, size, path, date) VALUES (?, ?, ?, ?, ?, ?, ?)");
 
         stmt.setString(1, savedFile.userID());
         stmt.setString(2, savedFile.filename());
@@ -64,8 +65,41 @@ public class DatabaseORM {
         stmt.setString(4, savedFile.permission().name());
         stmt.setLong(5, savedFile.size());
         stmt.setString(6, savedFile.path());
+        stmt.setLong(7, savedFile.date());
 
         stmt.executeUpdate();
+    }
+
+    public List<SavedFile> getTopFiles(String userID, int n_page) throws SQLException {
+        ArrayList<SavedFile> list = new ArrayList<>();
+
+        PreparedStatement stmt = connection.prepareStatement("SELECT * FROM FILES WHERE PERMISSION_TYPE = 'PUBLIC' OR PERMISSION_TYPE = 'PROTECTED' OR (PERMISSION_TYPE = 'PRIVATE' AND UPLOADER_ID = ?) LIMIT ?, 15");
+
+        stmt.setString(1, userID);
+        stmt.setInt(2, 15 * n_page);
+        ResultSet rs = stmt.executeQuery();
+
+        while (rs.next()) {
+            list.add(new SavedFile(rs.getString("uploader_id"), rs.getString("filename"), rs.getString("content_type"), PermissionsEnum.valueOf(rs.getString("permission_type")), rs.getLong("size"), rs.getString("path"), rs.getLong("date")));
+        }
+
+        return list;
+    }
+
+    public List<SavedFile> getUserFiles(String userID, int n_page) throws SQLException {
+        ArrayList<SavedFile> list = new ArrayList<>();
+
+        PreparedStatement stmt = connection.prepareStatement("SELECT * FROM FILES WHERE UPLOADER_ID = ? LIMIT ?, 15");
+
+        stmt.setString(1, userID);
+        stmt.setInt(2, 15 * n_page);
+        ResultSet rs = stmt.executeQuery();
+
+        while (rs.next()) {
+            list.add(new SavedFile(rs.getString("uploader_id"), rs.getString("filename"), rs.getString("content_type"), PermissionsEnum.valueOf(rs.getString("permission_type")), rs.getLong("size"), rs.getString("path"), rs.getLong("date")));
+        }
+
+        return list;
     }
 }
 

@@ -1,17 +1,15 @@
 package server;
 
+import common.messages.*;
 import server.db_objects.SavedFile;
 import server.db_objects.User;
-import common.messages.FileDownloadMessage;
-import common.messages.FileUploadMessage;
-import common.messages.LoginValidationMessage;
-import common.messages.UserLoginMessage;
 import common.PermissionsEnum;
 import common.TCPCommunicator;
 
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.UUID;
 
 public class ServerInstance {
@@ -48,6 +46,11 @@ public class ServerInstance {
                     this.handleFileDownload(file_download);
 
                     break;
+                case GET_FILE_LIST:
+                    FileListRequest  file_list_request = (FileListRequest)this.communicator.receiveMessage();
+                    this.handleFileListRequest(file_list_request);
+
+                    break;
             }
         }
     }
@@ -56,7 +59,6 @@ public class ServerInstance {
         // TODO check password hash
         System.out.println(user_login.username());
         System.out.println(user_login.password());
-        System.out.println(user_login.salt());
 
         User u = this.db.getUser(user_login.username());
 
@@ -78,7 +80,7 @@ public class ServerInstance {
 
         String uuid = UUID.randomUUID().toString();
 
-        User new_user = new User(uuid, user_register.username(), user_register.password(), user_register.salt());
+        User new_user = new User(uuid, user_register.username(), user_register.password());
         this.db.insertUser(new_user);
 
         LoginValidationMessage registration = new LoginValidationMessage(true, "", uuid);
@@ -90,7 +92,7 @@ public class ServerInstance {
 
         this.communicator.receiveAndSaveFile("saved_files/" + file_upload.filename());
 
-        SavedFile saved_file = new SavedFile(file_upload.userID(), file_upload.filename(), file_upload.contentType(), file_upload.permission(), file_upload.size(), "saved_files/" + file_upload.filename());
+        SavedFile saved_file = new SavedFile(file_upload.userID(), file_upload.filename(), file_upload.contentType(), file_upload.permission(), file_upload.size(), "saved_files/" + file_upload.filename(), file_upload.date());
         this.db.insertSavedFile(saved_file);
     }
 
@@ -114,5 +116,18 @@ public class ServerInstance {
                 }
                 break;
         }
+    }
+
+    private void handleFileListRequest(FileListRequest file_list_request) throws IOException, SQLException {
+        List<SavedFile> files = null;
+
+        if (file_list_request.user_only()) {
+            files = this.db.getUserFiles(file_list_request.userID(), file_list_request.page_num());
+        }
+        else {
+            files = this.db.getTopFiles(file_list_request.userID(), file_list_request.page_num());
+        }
+
+        this.communicator.sendMessage(new FileListResponse(files));
     }
 }
