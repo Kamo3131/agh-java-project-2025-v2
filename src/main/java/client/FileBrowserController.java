@@ -2,6 +2,8 @@ package client;
 
 import common.FileModel;
 import common.PermissionsEnum;
+import common.TCPCommunicator;
+import common.messages.FileUploadMessage;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -27,6 +29,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.UUID;
 
 /**
  * Controller class for the File Browser view.
@@ -185,6 +188,11 @@ public class FileBrowserController {
         ));
     }
 
+    private void TCPupload(File file) throws IOException {
+        TCPCommunicator communicator = TCPCommunicator.startClient(8080);
+        communicator.sendMessage(TCPCommunicator.MessageType.FILE_UPLOAD);
+        communicator.sendMessage(new FileUploadMessage(file.getName(), UUID.randomUUID().toString(), "Archive", permissions, file.length()/(1024*1024), file.lastModified()));
+    }
 
     /**
      * Sets up the table columns and formatting.
@@ -360,6 +368,11 @@ public class FileBrowserController {
 
             compressionTask.setOnSucceeded(event -> {
                 File compressedFile = compressionTask.getValue();
+                try {
+                    TCPupload(compressedFile);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
                 addFile(compressedFile);
                 handleRemoveFiles();
             });
