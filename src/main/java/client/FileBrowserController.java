@@ -12,6 +12,9 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -19,6 +22,7 @@ import javafx.stage.Window;
 import server.db_objects.User;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -49,6 +53,7 @@ public class FileBrowserController {
     @FXML private TableColumn<FileModel, String> tableDate;
     @FXML private TableColumn<FileModel, PermissionsEnum> tablePermissions;
     @FXML private TableColumn<FileModel, Double> tableSize;
+    @FXML private TableColumn<FileModel, Void> tableDownloadIcon;
 
     @FXML private Pagination TablePagesIndicator;
 
@@ -59,7 +64,9 @@ public class FileBrowserController {
     private List<File> filesToSendTemp;
     private PermissionsEnum permissions;
     private final ZipCompress zipCompress = new ZipCompress();
-    private String basicOutDirName = "OutDir";
+    private final ZipDecompress zipDecompress = new ZipDecompress();
+    private final String basicExportDirName = "ExportDir";
+    private String basicImportDirName = "ImportDir";
 
 
     /**
@@ -103,7 +110,7 @@ public class FileBrowserController {
     }
 
     private File createBasicDirectory(){
-        File directory = new File(basicOutDirName);
+        File directory = new File(basicExportDirName);
         if(!directory.exists()){
             if(directory.mkdir()){
                 System.out.println("Directory created");
@@ -200,8 +207,27 @@ public class FileBrowserController {
                 }
             }
         });
+        //When row is clicked two times, the file will be decompressed to the basic directory
+        table.setRowFactory(tv -> {
+            TableRow<FileModel> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if(event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2){
+                   handleRowSelection();
+               }
+            });
+            return row;
+        });
     }
 
+    private void handleRowSelection(){
+        FileModel file = table.getSelectionModel().getSelectedItem();
+        System.out.println(file.getFilename());
+        try {
+            zipDecompress.decompress(basicExportDirName +"/"+ file.getFilename(), basicImportDirName);
+        } catch (IOException e) {
+            System.err.println("Error while decompressing file " + file.getFilename());
+        }
+    }
     /**
      * Initializes file permission menu items and their event handlers.
      */
@@ -328,7 +354,7 @@ public class FileBrowserController {
             Task<File> compressionTask = new Task<>() {
                 @Override
                 protected File call() throws Exception {
-                    return zipCompress.compress(basicOutDirName+"/"+finalNewFilename + ".zip");
+                    return zipCompress.compress(basicExportDirName+"/"+finalNewFilename + ".zip");
                 }
             };
 
