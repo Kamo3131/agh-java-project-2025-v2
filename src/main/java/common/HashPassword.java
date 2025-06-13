@@ -1,4 +1,4 @@
-package client;
+package common;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
