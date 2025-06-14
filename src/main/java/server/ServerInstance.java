@@ -1,5 +1,6 @@
 package server;
 
+import common.HashPassword;
 import common.messages.*;
 import server.db_objects.SavedFile;
 import server.db_objects.User;
@@ -56,35 +57,41 @@ public class ServerInstance {
     }
 
     private void handleUserLogin(UserLoginMessage user_login) throws IOException, SQLException {
-        // TODO check password hash
-        System.out.println(user_login.username());
-        System.out.println(user_login.password());
-
         User u = this.db.getUser(user_login.username());
 
         LoginValidationMessage validation;
 
-        if (u != null) {
-            validation = new LoginValidationMessage(true, "", u.id());
+        if (u == null) {
+            validation = new LoginValidationMessage(false, LoginValidationMessage.LoginError.USER_NOT_FOUND, "");
         }
         else {
-            validation = new LoginValidationMessage(false, "UserNotFound", "");
+            if (HashPassword.verify(user_login.password(), u.password())) {
+                validation = new LoginValidationMessage(true, LoginValidationMessage.LoginError.PASSED, u.id());
+            }
+            else {
+                validation = new LoginValidationMessage(false, LoginValidationMessage.LoginError.WRONG_PASSWORD, "");
+            }
         }
 
         this.communicator.sendMessage(validation);
     }
 
     private void handleUserRegistration(UserLoginMessage user_register) throws IOException, SQLException {
-        // TODO
-        System.out.println("registering");
+        User u = this.db.getUser(user_register.username());
 
-        String uuid = UUID.randomUUID().toString();
+        if (u == null) {
+            String uuid = UUID.randomUUID().toString();
 
-        User new_user = new User(uuid, user_register.username(), user_register.password());
-        this.db.insertUser(new_user);
+            User new_user = new User(uuid, user_register.username(), (new HashPassword(user_register.password(), 32, 65000, 512)).hash());
+            this.db.insertUser(new_user);
 
-        LoginValidationMessage registration = new LoginValidationMessage(true, "", uuid);
-        this.communicator.sendMessage(registration);
+            LoginValidationMessage registration = new LoginValidationMessage(true, LoginValidationMessage.LoginError.PASSED, uuid);
+            this.communicator.sendMessage(registration);
+        }
+        else {
+            LoginValidationMessage registration = new LoginValidationMessage(false, LoginValidationMessage.LoginError.ALREADY_EXISTS, "");
+            this.communicator.sendMessage(registration);
+        }
     }
 
     private void handleFileUpload(FileUploadMessage file_upload) throws IOException, SQLException {

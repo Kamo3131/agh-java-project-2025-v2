@@ -1,13 +1,18 @@
 package client;
 
+import common.TCPCommunicator;
+import common.messages.LoginValidationMessage;
+import common.messages.UserLoginMessage;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+import server.db_objects.User;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Objects;
 
 public class SignLogController {
@@ -52,23 +57,27 @@ public class SignLogController {
     @FXML
     private Label HollowSignSuccesLabel;
 
+    private TCPCommunicator communicator;
+
 
     /**
      * Initializes GUI components by setting status labels to invisible.
      */
     @FXML
-    private void initialize() {
+    private void initialize() throws IOException {
         HollowLoginLabel.setVisible(false);
         HollowSignLabel.setVisible(false);
         HollowSignSuccesLabel.setVisible(false);
         HollowLogSuccesLabel.setVisible(false);
         // Inicjalizacja przycisków i innych komponentów
+
+        this.communicator = TCPCommunicator.startClient(8080);
     }
 
     /**
      * Calls the login handler method. Activated by LogInButton.
      */
-    public void userLogin(){
+    public void userLogin() {
         handleLogin();
     }
     /**
@@ -103,22 +112,40 @@ public class SignLogController {
      * Handles the user login process: validates input, sets labels, and switches scene on success.
      */
     private void handleLogin() {
-        if(isLogInCorrect()){
-            System.out.println("Login OK");
-            HollowLoginLabel.setVisible(false);
-            HollowLogSuccesLabel.setText("Log in has been successful!");
-            HollowLogSuccesLabel.setVisible(true);
-            try {
-                handleSwitchToFileBrowser(LoginLogin.getText());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+        try {
+            UserLoginMessage user_login = new UserLoginMessage(LoginLogin.getText(), LoginPassword.getText());
+
+            communicator.sendMessage(TCPCommunicator.MessageType.LOGIN);
+            LoginValidationMessage valid = (LoginValidationMessage)communicator.sendAndReceiveMessage(user_login);
+
+            if (valid.valid()) {
+                System.out.println("Login OK");
+                HollowLoginLabel.setVisible(false);
+                HollowLogSuccesLabel.setText("Log in has been successful!");
+                HollowLogSuccesLabel.setVisible(true);
+                try {
+                    handleSwitchToFileBrowser(LoginLogin.getText());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            else {
+                if (valid.message() == LoginValidationMessage.LoginError.USER_NOT_FOUND) {
+                    System.out.println("Login Error");
+                    HollowLoginLabel.setText("User was not found!");
+                    HollowLoginLabel.setVisible(true);
+                    HollowLogSuccesLabel.setVisible(false);
+                }
+                else if (valid.message() == LoginValidationMessage.LoginError.WRONG_PASSWORD) {
+                    System.out.println("Login Error");
+                    HollowLoginLabel.setText("Wrong password!");
+                    HollowLoginLabel.setVisible(true);
+                    HollowLogSuccesLabel.setVisible(false);
+                }
             }
         }
-        else{
-            System.out.println("Login Error");
-            HollowLoginLabel.setText("Wrong login or password");
-            HollowLoginLabel.setVisible(true);
-            HollowLogSuccesLabel.setVisible(false);
+        catch (ClassNotFoundException | IOException e) {
+            System.out.println(e.getMessage());
         }
 
         // Logika logowania
@@ -128,30 +155,44 @@ public class SignLogController {
      * updates status labels, and switches scene on success.
      */
     private void handleSignUp() {
-        if(!SignLogin.getText().equals("Marek Lis") && SignPassword.getText().length()>=8 &&
-                SignPasswordRepeat.getText().equals(SignPassword.getText())){
-            System.out.println("SignUp OK");
-            HollowSignLabel.setVisible(false);
-            HollowSignSuccesLabel.setText("Sign up has been successful!");
-            HollowSignSuccesLabel.setVisible(true);
+        if (SignPassword.getText().length() >= 8 && SignPasswordRepeat.getText().equals(SignPassword.getText())) {
             try {
-                handleSwitchToFileBrowser(SignLogin.getText());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+                UserLoginMessage user_register = new UserLoginMessage(SignLogin.getText(), SignPassword.getText());
+
+                communicator.sendMessage(TCPCommunicator.MessageType.REGISTER);
+                LoginValidationMessage valid = (LoginValidationMessage)communicator.sendAndReceiveMessage(user_register);
+
+                if (valid.valid()) {
+                    System.out.println("SignUp OK");
+                    HollowSignLabel.setVisible(false);
+                    HollowSignSuccesLabel.setText("Sign up has been successful!");
+                    HollowSignSuccesLabel.setVisible(true);
+                    try {
+                        handleSwitchToFileBrowser(SignLogin.getText());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                else {
+                    System.out.println("SignUp Error");
+                    HollowSignLabel.setText("This login already exists");
+                    HollowSignLabel.setVisible(true);
+                    HollowSignSuccesLabel.setVisible(false);
+                }
+
             }
-        } else if (SignPassword.getText().length()<8) {
+            catch (ClassNotFoundException | IOException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+        else if (SignPassword.getText().length() < 8) {
             System.out.println("SignUp Error");
             HollowSignLabel.setText("Wrong password");
             HollowSignLabel.setVisible(true);
             HollowSignSuccesLabel.setVisible(false);
-        } else if (!SignPasswordRepeat.getText().equals(SignPassword.getText())) {
+        } else {
             System.out.println("SignUp Error");
             HollowSignLabel.setText("Repeated password does not match");
-            HollowSignLabel.setVisible(true);
-            HollowSignSuccesLabel.setVisible(false);
-        } else{
-            System.out.println("SignUp Error");
-            HollowSignLabel.setText("This login already exists");
             HollowSignLabel.setVisible(true);
             HollowSignSuccesLabel.setVisible(false);
         }

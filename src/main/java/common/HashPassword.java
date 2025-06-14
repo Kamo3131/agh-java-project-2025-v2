@@ -51,7 +51,7 @@ public class HashPassword {
         byte[] hashedBytes = generateHash();
         return iterations + ":" + Base64.getEncoder().encodeToString(salt) + ":" + Base64.getEncoder().encodeToString(hashedBytes)+":"+keyLength;
     }
-    public boolean verify(String newPassword, String hashedPassword) {
+    public static boolean verify(String newPassword, String hashedPassword) {
         String[] splitHash = hashedPassword.split(":");
         int iterations = Integer.parseInt(splitHash[0]);
         byte[] salt = Base64.getDecoder().decode(splitHash[1]);
