@@ -1,4 +1,4 @@
-import client.HashPassword;
+import common.HashPassword;
 import client.ZipCompress;
 import client.ZipDecompress;
 import java.io.File;

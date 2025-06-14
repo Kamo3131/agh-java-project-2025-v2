@@ -3,9 +3,7 @@ package client;
 import common.FileModel;
 import common.PermissionsEnum;
 import common.TCPCommunicator;
-import common.messages.FileListRequest;
-import common.messages.FileListResponse;
-import common.messages.FileUploadMessage;
+import common.messages.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -118,7 +116,6 @@ public class FileBrowserController {
         compressionLabel.setVisible(false);
         setPermissions();
         setTable();
-        updatePagination();
         //Line below checks if a basic directory exists, then exports all
         //files from this dir to List<File> and puts this List in the tableview
 //        addFiles(getFilesFromDirectory(createBasicDirectory()));
@@ -171,10 +168,6 @@ public class FileBrowserController {
         return new VBox();
     }
 
-    /**
-     * Adds multiple files to the observable list and updates the table.
-     * @param file_list list of files to add
-     */
     private void getFilesFromDB(String userID) {
         try {
             communicator.sendMessage(TCPCommunicator.MessageType.GET_FILE_LIST);
@@ -205,9 +198,17 @@ public class FileBrowserController {
     }
 
     private void TCPupload(File file) throws IOException {
+        FileUploadMessage message = new FileUploadMessage(file.getName(), username, userID, "Archive", permissions, file.length()/(1024*1024), file.lastModified());
         communicator.sendMessage(TCPCommunicator.MessageType.FILE_UPLOAD);
-        communicator.sendMessage(new FileUploadMessage(file.getName(), username, UUID.randomUUID().toString(), "Archive", permissions, file.length()/(1024*1024), file.lastModified()));
+        communicator.sendMessage(message);
         communicator.sendFile(file);
+    }
+
+    private void TCPdownload(String filename) throws IOException {
+        FileDownloadMessage message = new FileDownloadMessage(filename, userID);
+        communicator.sendMessage(TCPCommunicator.MessageType.FILE_DOWNLOAD);
+        communicator.sendMessage(message);
+        communicator.receiveAndSaveFile(filename);
     }
 
     /**
@@ -386,11 +387,12 @@ public class FileBrowserController {
                 File compressedFile = compressionTask.getValue();
                 try {
                     TCPupload(compressedFile);
+                    addFile(compressedFile);
+                    handleRemoveFiles();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-                addFile(compressedFile);
-                handleRemoveFiles();
+
             });
 
             compressionTask.setOnFailed(event -> {
