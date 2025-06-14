@@ -99,7 +99,7 @@ public class ServerInstance {
 
         this.communicator.receiveAndSaveFile("saved_files/" + file_upload.filename());
 
-        SavedFile saved_file = new SavedFile(file_upload.userID(), file_upload.filename(), file_upload.contentType(), file_upload.permission(), file_upload.size(), "saved_files/" + file_upload.filename(), file_upload.date());
+        SavedFile saved_file = new SavedFile(file_upload.userID(), file_upload.username(), file_upload.filename(), file_upload.contentType(), file_upload.permission(), file_upload.size(), "saved_files/" + file_upload.filename(), file_upload.date());
         this.db.insertSavedFile(saved_file);
     }
 

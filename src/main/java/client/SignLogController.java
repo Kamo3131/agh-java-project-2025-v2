@@ -91,13 +91,13 @@ public class SignLogController {
      * @throws IOException if the FXML file cannot be loaded
      */
     public void userSwitchToFileBrowser() throws IOException {
-        if(!LoginLogin.getText().isEmpty()) {
-            handleSwitchToFileBrowser(LoginLogin.getText());
-        } else if (!SignLogin.getText().isEmpty()) {
-            handleSwitchToFileBrowser(SignLogin.getText());
-        } else {
-            handleSwitchToFileBrowser("Marek Lis");
-        }
+//        if(!LoginLogin.getText().isEmpty()) {
+//            handleSwitchToFileBrowser(LoginLogin.getText());
+//        } else if (!SignLogin.getText().isEmpty()) {
+//            handleSwitchToFileBrowser(SignLogin.getText());
+//        } else {
+//            handleSwitchToFileBrowser("Marek Lis");
+//        }
     }
     /**
      * Verifies if the provided login credentials are correct.
@@ -124,7 +124,7 @@ public class SignLogController {
                 HollowLogSuccesLabel.setText("Log in has been successful!");
                 HollowLogSuccesLabel.setVisible(true);
                 try {
-                    handleSwitchToFileBrowser(LoginLogin.getText());
+                    handleSwitchToFileBrowser(LoginLogin.getText(), valid.id());
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -168,7 +168,7 @@ public class SignLogController {
                     HollowSignSuccesLabel.setText("Sign up has been successful!");
                     HollowSignSuccesLabel.setVisible(true);
                     try {
-                        handleSwitchToFileBrowser(SignLogin.getText());
+                        handleSwitchToFileBrowser(SignLogin.getText(), valid.id());
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -203,13 +203,13 @@ public class SignLogController {
      * @param username the name of the logged-in or newly registered user
      * @throws IOException if the FXML file cannot be loaded
      */
-    private void handleSwitchToFileBrowser(String username) throws IOException {
+    private void handleSwitchToFileBrowser(String username, String userID) throws IOException {
         FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(getClass().getResource("FileBrowser.fxml")));
         Parent root = loader.load();
 
 
         FileBrowserController fileBrowserController = loader.getController();
-        fileBrowserController.setUser(username);
+        fileBrowserController.setUser(username, userID);
 
         // Show the new scene
         Stage stage = (Stage) LogInButton.getScene().getWindow();

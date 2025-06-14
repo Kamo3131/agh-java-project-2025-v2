@@ -1,8 +1,15 @@
 package server.db_objects;
 
+import common.FileModel;
 import common.PermissionsEnum;
 
 import java.io.Serializable;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.TimeZone;
 
-public record SavedFile(String userID, String filename, String contentType, PermissionsEnum permission, long size,
-                        String path, long date) implements Serializable {}
+public record SavedFile(String userID, String username, String filename, String contentType, PermissionsEnum permission, double size, String path, long date) implements Serializable {
+    public FileModel toFileModel() {
+        return new FileModel(filename, username, permission, LocalDateTime.ofInstant(Instant.ofEpochMilli(date), TimeZone.getDefault().toZoneId()), size);
+    }
+}

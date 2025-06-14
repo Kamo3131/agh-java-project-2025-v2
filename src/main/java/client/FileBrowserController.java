@@ -3,6 +3,8 @@ package client;
 import common.FileModel;
 import common.PermissionsEnum;
 import common.TCPCommunicator;
+import common.messages.FileListRequest;
+import common.messages.FileListResponse;
 import common.messages.FileUploadMessage;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -21,6 +23,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import server.db_objects.SavedFile;
 import server.db_objects.User;
 
 import java.io.File;
@@ -40,6 +43,7 @@ public class FileBrowserController {
 
     private int port_number;
     private String username;
+    private String userID;
     @FXML private Button AddFileButtonSend;
     @FXML private MenuButton PermissionsMenuSend;
     @FXML private Button ButtonSend;
@@ -70,16 +74,17 @@ public class FileBrowserController {
     private final ZipDecompress zipDecompress = new ZipDecompress();
     private final String basicExportDirName = "ExportDir";
     private String basicImportDirName = "ImportDir";
+    private TCPCommunicator communicator;
 
 
     /**
      * Sets the username of the logged-in user.
      * @param username the name of the user
      */
-    public void setUser(String username) {
+    public void setUser(String username, String userID) {
         this.username = username;
         usernameLabel.setText(username);
-
+        this.userID = userID;
     }
 
     /**
@@ -101,7 +106,14 @@ public class FileBrowserController {
      * Initializes the controller after its root element has been completely processed.
      */
     @FXML
-    private void initialize() {
+    private void initialize() throws IOException {
+        try {
+            communicator = TCPCommunicator.startClient(8080);
+        }
+        catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+
         this.permissionsLabel.setVisible(false);
         compressionLabel.setVisible(false);
         setPermissions();
@@ -109,7 +121,8 @@ public class FileBrowserController {
         updatePagination();
         //Line below checks if a basic directory exists, then exports all
         //files from this dir to List<File> and puts this List in the tableview
-        addFiles(getFilesFromDirectory(createBasicDirectory()));
+//        addFiles(getFilesFromDirectory(createBasicDirectory()));
+        getFilesFromDB(userID, 0);
     }
 
     private File createBasicDirectory(){
@@ -161,17 +174,19 @@ public class FileBrowserController {
      * Adds multiple files to the observable list and updates the table.
      * @param file_list list of files to add
      */
-    private void addFiles(List<File> file_list) {
-        for(File file : file_list) {
-            files.add(new FileModel(file.getName(), username, permissions,
-                    Instant.ofEpochMilli(file.lastModified())
-                            .atZone(ZoneId.systemDefault())
-                            .toLocalDateTime(), (double) file.length() /(1024*1024)));
+    private void getFilesFromDB(String userID, int page_num) {
+        try {
+            communicator.sendMessage(TCPCommunicator.MessageType.GET_FILE_LIST);
+
+            FileListResponse response = (FileListResponse)communicator.sendAndReceiveMessage(new FileListRequest(userID, page_num, false));
+
+            for (SavedFile file : response.files()) {
+                files.add(file.toFileModel());
+            }
         }
-        updatePagination();
-        table.setItems(FXCollections.observableArrayList(
-                files.subList(0, Math.min(MAX_ROWS_PER_PAGE, files.size()))
-        ));
+        catch (IOException | ClassNotFoundException e) {
+            System.out.println(e.getMessage());
+        }
     }
     /**
      * Adds a single file to the observable list and updates the table.
@@ -189,9 +204,8 @@ public class FileBrowserController {
     }
 
     private void TCPupload(File file) throws IOException {
-        TCPCommunicator communicator = TCPCommunicator.startClient(8080);
         communicator.sendMessage(TCPCommunicator.MessageType.FILE_UPLOAD);
-        communicator.sendMessage(new FileUploadMessage(file.getName(), UUID.randomUUID().toString(), "Archive", permissions, file.length()/(1024*1024), file.lastModified()));
+        communicator.sendMessage(new FileUploadMessage(file.getName(), username, UUID.randomUUID().toString(), "Archive", permissions, file.length()/(1024*1024), file.lastModified()));
     }
 
     /**

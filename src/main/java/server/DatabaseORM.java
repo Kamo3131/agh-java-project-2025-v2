@@ -49,7 +49,7 @@ public class DatabaseORM {
         ResultSet rs = stmt.executeQuery();
 
         if (rs.next()) {
-            return new SavedFile(rs.getString("uploader_id"), rs.getString("filename"), rs.getString("content_type"), PermissionsEnum.valueOf(rs.getString("permission_type")), rs.getLong("size"), rs.getString("path"), rs.getLong("date"));
+            return new SavedFile(rs.getString("uploader_id"), rs.getString("uploader_name"), rs.getString("filename"), rs.getString("content_type"), PermissionsEnum.valueOf(rs.getString("permission_type")), rs.getDouble("size"), rs.getString("path"), rs.getLong("date"));
         }
         else {
             return null;
@@ -57,15 +57,16 @@ public class DatabaseORM {
     }
 
     public void insertSavedFile(SavedFile savedFile) throws SQLException {
-        PreparedStatement stmt = connection.prepareStatement("INSERT INTO FILES (uploader_id, filename, content_type, permission_type, size, path, date) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        PreparedStatement stmt = connection.prepareStatement("INSERT INTO FILES (uploader_id, uploader_name, filename, content_type, permission_type, size, path, date) VALUES (?, ?, ?, ?, ?, ?, ?)");
 
         stmt.setString(1, savedFile.userID());
-        stmt.setString(2, savedFile.filename());
-        stmt.setString(3, savedFile.contentType());
-        stmt.setString(4, savedFile.permission().name());
-        stmt.setLong(5, savedFile.size());
-        stmt.setString(6, savedFile.path());
-        stmt.setLong(7, savedFile.date());
+        stmt.setString(2, savedFile.username());
+        stmt.setString(3, savedFile.filename());
+        stmt.setString(4, savedFile.contentType());
+        stmt.setString(5, savedFile.permission().name());
+        stmt.setDouble(6, savedFile.size());
+        stmt.setString(7, savedFile.path());
+        stmt.setLong(8, savedFile.date());
 
         stmt.executeUpdate();
     }
@@ -80,7 +81,7 @@ public class DatabaseORM {
         ResultSet rs = stmt.executeQuery();
 
         while (rs.next()) {
-            list.add(new SavedFile(rs.getString("uploader_id"), rs.getString("filename"), rs.getString("content_type"), PermissionsEnum.valueOf(rs.getString("permission_type")), rs.getLong("size"), rs.getString("path"), rs.getLong("date")));
+            list.add(new SavedFile(rs.getString("uploader_id"), rs.getString("uploader_name"), rs.getString("filename"), rs.getString("content_type"), PermissionsEnum.valueOf(rs.getString("permission_type")), rs.getDouble("size"), rs.getString("path"), rs.getLong("date")));
         }
 
         return list;
@@ -96,7 +97,7 @@ public class DatabaseORM {
         ResultSet rs = stmt.executeQuery();
 
         while (rs.next()) {
-            list.add(new SavedFile(rs.getString("uploader_id"), rs.getString("filename"), rs.getString("content_type"), PermissionsEnum.valueOf(rs.getString("permission_type")), rs.getLong("size"), rs.getString("path"), rs.getLong("date")));
+            list.add(new SavedFile(rs.getString("uploader_id"), rs.getString("uploader_name"), rs.getString("filename"), rs.getString("content_type"), PermissionsEnum.valueOf(rs.getString("permission_type")), rs.getDouble("size"), rs.getString("path"), rs.getLong("date")));
         }
 
         return list;
