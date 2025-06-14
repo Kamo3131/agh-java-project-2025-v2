@@ -118,6 +118,7 @@ public class FileBrowserController {
         compressionLabel.setVisible(false);
         setPermissions();
         setTable();
+        updatePagination();
         //Line below checks if a basic directory exists, then exports all
         //files from this dir to List<File> and puts this List in the tableview
 //        addFiles(getFilesFromDirectory(createBasicDirectory()));
