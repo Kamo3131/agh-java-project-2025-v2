@@ -188,7 +188,7 @@ public class FileBrowserController {
         ));
     }
 
-    private void TCPupload(File file) throws IOException {
+    private void upload(File file) throws IOException {
         TCPCommunicator communicator = TCPCommunicator.startClient(8080);
         communicator.sendMessage(TCPCommunicator.MessageType.FILE_UPLOAD);
         communicator.sendMessage(new FileUploadMessage(file.getName(), UUID.randomUUID().toString(), "Archive", permissions, file.length()/(1024*1024), file.lastModified()));
@@ -369,7 +369,7 @@ public class FileBrowserController {
             compressionTask.setOnSucceeded(event -> {
                 File compressedFile = compressionTask.getValue();
                 try {
-                    TCPupload(compressedFile);
+                    upload(compressedFile);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
