@@ -95,8 +95,6 @@ public class ServerInstance {
     }
 
     private void handleFileUpload(FileUploadMessage file_upload) throws IOException, SQLException {
-        System.out.println(file_upload.userID());
-
         this.communicator.receiveAndSaveFile("saved_files/" + file_upload.filename());
 
         SavedFile saved_file = new SavedFile(file_upload.userID(), file_upload.username(), file_upload.filename(), file_upload.contentType(), file_upload.permission(), file_upload.size(), "saved_files/" + file_upload.filename(), file_upload.date());
@@ -126,14 +124,11 @@ public class ServerInstance {
     }
 
     private void handleFileListRequest(FileListRequest file_list_request) throws IOException, SQLException {
-        List<SavedFile> files = null;
-
-        if (file_list_request.user_only()) {
-            files = this.db.getUserFiles(file_list_request.userID(), file_list_request.page_num());
-        }
-        else {
-            files = this.db.getTopFiles(file_list_request.userID(), file_list_request.page_num());
-        }
+        List<SavedFile> files = switch (file_list_request.type()) {
+            case USER_ONLY -> this.db.getUserFiles(file_list_request.userID(), file_list_request.page_num());
+            case TOP_15 -> this.db.getTopFiles(file_list_request.userID(), file_list_request.page_num());
+            case ALL -> this.db.getAllSavedFiles(file_list_request.userID());
+        };
 
         this.communicator.sendMessage(new FileListResponse(files));
     }

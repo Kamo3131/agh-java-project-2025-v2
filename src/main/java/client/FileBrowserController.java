@@ -118,11 +118,11 @@ public class FileBrowserController {
         compressionLabel.setVisible(false);
         setPermissions();
         setTable();
-        updatePagination();
         //Line below checks if a basic directory exists, then exports all
         //files from this dir to List<File> and puts this List in the tableview
 //        addFiles(getFilesFromDirectory(createBasicDirectory()));
-        getFilesFromDB(userID, 0);
+        getFilesFromDB(userID);
+        updatePagination();
     }
 
     private File createBasicDirectory(){
@@ -174,11 +174,11 @@ public class FileBrowserController {
      * Adds multiple files to the observable list and updates the table.
      * @param file_list list of files to add
      */
-    private void getFilesFromDB(String userID, int page_num) {
+    private void getFilesFromDB(String userID) {
         try {
             communicator.sendMessage(TCPCommunicator.MessageType.GET_FILE_LIST);
 
-            FileListResponse response = (FileListResponse)communicator.sendAndReceiveMessage(new FileListRequest(userID, page_num, false));
+            FileListResponse response = (FileListResponse)communicator.sendAndReceiveMessage(new FileListRequest(userID, 0, FileListRequest.ListType.ALL));
 
             for (SavedFile file : response.files()) {
                 files.add(file.toFileModel());
@@ -206,6 +206,7 @@ public class FileBrowserController {
     private void TCPupload(File file) throws IOException {
         communicator.sendMessage(TCPCommunicator.MessageType.FILE_UPLOAD);
         communicator.sendMessage(new FileUploadMessage(file.getName(), username, UUID.randomUUID().toString(), "Archive", permissions, file.length()/(1024*1024), file.lastModified()));
+        communicator.sendFile(file);
     }
 
     /**
