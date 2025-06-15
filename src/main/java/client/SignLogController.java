@@ -209,7 +209,7 @@ public class SignLogController {
 
 
         FileBrowserController fileBrowserController = loader.getController();
-        fileBrowserController.setUser(username, userID);
+        fileBrowserController.setUserAndLoadFiles(username, userID);
 
         // Show the new scene
         Stage stage = (Stage) LogInButton.getScene().getWindow();

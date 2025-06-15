@@ -76,13 +76,17 @@ public class FileBrowserController {
 
 
     /**
-     * Sets the username of the logged-in user.
+     * Sets the username and the userID of the logged-in user. Loads files from database.
      * @param username the name of the user
+     * @param userID the ID of the user
      */
-    public void setUser(String username, String userID) {
+    public void setUserAndLoadFiles(String username, String userID) {
         this.username = username;
         usernameLabel.setText(username);
         this.userID = userID;
+
+        getFilesFromDB(this.userID);
+        updatePagination();
     }
 
     /**
@@ -119,8 +123,7 @@ public class FileBrowserController {
         //Line below checks if a basic directory exists, then exports all
         //files from this dir to List<File> and puts this List in the tableview
 //        addFiles(getFilesFromDirectory(createBasicDirectory()));
-        getFilesFromDB(userID);
-        updatePagination();
+
     }
 
     private File createBasicDirectory(){
@@ -171,7 +174,6 @@ public class FileBrowserController {
     private void getFilesFromDB(String userID) {
         try {
             communicator.sendMessage(TCPCommunicator.MessageType.GET_FILE_LIST);
-
             FileListResponse response = (FileListResponse)communicator.sendAndReceiveMessage(new FileListRequest(userID, 0, FileListRequest.ListType.ALL));
 
             for (SavedFile file : response.files()) {
