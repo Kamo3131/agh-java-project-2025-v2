@@ -245,12 +245,18 @@ public class FileBrowserController {
     }
 
     private void handleRowSelection(){
-        FileModel file = table.getSelectionModel().getSelectedItem();
-        System.out.println(file.getFilename());
+        FileModel fileModel = table.getSelectionModel().getSelectedItem();
+        System.out.println(fileModel.getFilename());
         try {
-            zipDecompress.decompress(basicExportDirName +"/"+ file.getFilename(), basicImportDirName);
+            TCPdownload(fileModel.getFilename());
+            zipDecompress.decompress(fileModel.getFilename(), basicImportDirName);
+            File file = new File(fileModel.getFilename());
+            if(!file.delete()){
+                System.out.println("File not deleted");
+            };
         } catch (IOException e) {
-            System.err.println("Error while decompressing file " + file.getFilename());
+            System.err.println("Error while decompressing file " + fileModel.getFilename());
+            throw new RuntimeException(e);
         }
     }
     /**
