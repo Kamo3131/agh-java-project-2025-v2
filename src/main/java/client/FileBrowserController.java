@@ -193,16 +193,14 @@ public class FileBrowserController {
                 files.subList(0, Math.min(MAX_ROWS_PER_PAGE, files.size()))
         ));
     }
-    private void updateFile(File file) {
-        files.remove(new FileModel(file.getName(), username, permissions,
-                Instant.ofEpochMilli(file.lastModified())
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDateTime(), (double) file.length() /(1024*1024)));
-        updatePagination();
-        table.setItems(FXCollections.observableArrayList(
-                files.subList(0, Math.min(MAX_ROWS_PER_PAGE, files.size()))
-        ));
+    private void removeFileIfFilenameMatches(File file) {
+        files.removeIf(f -> file.getName().equals(f.getFilename()));
     }
+    private void updateFile(File newFile) {
+        removeFileIfFilenameMatches(newFile);
+        addFile(newFile);
+    }
+
 
     private void TCPupload(File file) throws IOException {
         FileUploadMessage message = new FileUploadMessage(file.getName(), username, userID, "Archive", permissions, file.length()/(1024*1024), file.lastModified());
@@ -362,6 +360,13 @@ public class FileBrowserController {
         compressionLabel.setVisible(false);
     }
 
+    private boolean filenameExists(String filename){
+        Set<String> existingFilenames = new HashSet<>();
+        for (FileModel file : files){
+            existingFilenames.add(file.getBaseName());
+        }
+        return existingFilenames.contains(filename);
+    }
     private String newFileNaming() {
         String newFilenameString = newFilename.getText();
         if (newFilenameString == null || newFilenameString.isEmpty()) {
@@ -405,7 +410,7 @@ public class FileBrowserController {
 
                 } else if(state == AlertState.OVERWRITE){
                     TCPupdate(compressedFile);
-                    addFile(compressedFile);
+                    updateFile(compressedFile);
                 }
 
                 handleRemoveFiles();
@@ -433,7 +438,7 @@ public class FileBrowserController {
         } else if(zipCompress.sizeSourceFiles()==0) {
             compressionLabel.setText("There are no files to send.");
             compressionLabel.setVisible(true);
-        }else {
+        }else if(filenameExists(newFilename.getText())){
             final AlertState temp = OverwriteAlertBox.displayOverwriteAlert(newFilename.getText(), (Stage) LogOutButton.getScene().getWindow());
             String finalNewFilename;
             if(temp==AlertState.OVERWRITE){
@@ -446,6 +451,10 @@ public class FileBrowserController {
                 compressionLabel.setText("Files sending cancelled.");
                 compressionLabel.setVisible(true);
             }
+            updatePagination();
+        } else{
+            String finalNewFilename = newFilename.getText();
+            sendFile(finalNewFilename, AlertState.SEND_NEW);
             updatePagination();
         }
     }

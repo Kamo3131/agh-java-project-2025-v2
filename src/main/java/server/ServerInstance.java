@@ -145,7 +145,7 @@ public class ServerInstance {
 
     private void handleFileUpdateMessage(FileUpdateMessage file_update) throws IOException, SQLException {
         File file = new File("saved_files/" + file_update.filename());
-
+        System.out.println("Halo");
         if (file.delete()) {
             this.communicator.receiveAndSaveFile("saved_files/" + file_update.filename());
         }
