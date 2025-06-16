@@ -122,7 +122,7 @@ public class DatabaseORM {
 
     public void updateSavedFile(String userID, String filename, long date) throws SQLException {
         PreparedStatement stmt = connection.prepareStatement("UPDATE FILES SET DATE=? WHERE FILENAME=? AND UPLOADER_ID=?");
-
+        System.out.println("Halo");
         stmt.setLong(1, date);
         stmt.setString(2, filename);
         stmt.setString(3, userID);
