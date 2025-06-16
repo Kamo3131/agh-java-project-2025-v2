@@ -14,23 +14,18 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import server.db_objects.SavedFile;
-import server.db_objects.User;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.UUID;
 
 /**
  * Controller class for the File Browser view.
@@ -198,10 +193,26 @@ public class FileBrowserController {
                 files.subList(0, Math.min(MAX_ROWS_PER_PAGE, files.size()))
         ));
     }
+    private void updateFile(File file) {
+        files.remove(new FileModel(file.getName(), username, permissions,
+                Instant.ofEpochMilli(file.lastModified())
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDateTime(), (double) file.length() /(1024*1024)));
+        updatePagination();
+        table.setItems(FXCollections.observableArrayList(
+                files.subList(0, Math.min(MAX_ROWS_PER_PAGE, files.size()))
+        ));
+    }
 
     private void TCPupload(File file) throws IOException {
         FileUploadMessage message = new FileUploadMessage(file.getName(), username, userID, "Archive", permissions, file.length()/(1024*1024), file.lastModified());
         communicator.sendMessage(TCPCommunicator.MessageType.FILE_UPLOAD);
+        communicator.sendMessage(message);
+        communicator.sendFile(file);
+    }
+    private void TCPupdate(File file) throws IOException {
+        FileUpdateMessage message = new FileUpdateMessage(userID, file.getName(), file.lastModified());
+        communicator.sendMessage(TCPCommunicator.MessageType.FILE_UPDATE);
         communicator.sendMessage(message);
         communicator.sendFile(file);
     }
@@ -351,7 +362,7 @@ public class FileBrowserController {
         compressionLabel.setVisible(false);
     }
 
-    private String fileNaming() {
+    private String newFileNaming() {
         String newFilenameString = newFilename.getText();
         if (newFilenameString == null || newFilenameString.isEmpty()) {
             newFilenameString = "NewArchive";
@@ -369,6 +380,48 @@ public class FileBrowserController {
         return temp;
     }
 
+    private String overwriteFileNaming(){
+        String newFilenameString = newFilename.getText();
+        if (newFilenameString == null || newFilenameString.isEmpty()) {
+            newFilenameString = "NewArchive";
+        }
+        return newFilenameString;
+    }
+
+    private void sendFile(final String finalNewFilename, AlertState state){
+        Task<File> compressionTask = new Task<>() {
+            @Override
+            protected File call() throws Exception {
+                return zipCompress.compress(basicExportDirName+"/"+finalNewFilename + ".zip");
+            }
+        };
+
+        compressionTask.setOnSucceeded(event -> {
+            File compressedFile = compressionTask.getValue();
+            try {
+                if(state==AlertState.SEND_NEW){
+                    TCPupload(compressedFile);
+                    addFile(compressedFile);
+
+                } else if(state == AlertState.OVERWRITE){
+                    TCPupdate(compressedFile);
+                    addFile(compressedFile);
+                }
+
+                handleRemoveFiles();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+        });
+
+        compressionTask.setOnFailed(event -> {
+            compressionLabel.setText("Compression failed. Trying again!");
+            compressionLabel.setVisible(true);
+        });
+
+        new Thread(compressionTask).start();
+    }
 
     /**
      * Handles file compression and updates the table upon success.
@@ -381,34 +434,19 @@ public class FileBrowserController {
             compressionLabel.setText("There are no files to send.");
             compressionLabel.setVisible(true);
         }else {
-            files = getFiles();
-//            files.forEach(System.out::println);
-            String finalNewFilename = fileNaming();
-            Task<File> compressionTask = new Task<>() {
-                @Override
-                protected File call() throws Exception {
-                    return zipCompress.compress(basicExportDirName+"/"+finalNewFilename + ".zip");
-                }
-            };
-
-            compressionTask.setOnSucceeded(event -> {
-                File compressedFile = compressionTask.getValue();
-                try {
-                    TCPupload(compressedFile);
-                    addFile(compressedFile);
-                    handleRemoveFiles();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-
-            });
-
-            compressionTask.setOnFailed(event -> {
-                compressionLabel.setText("Compression failed. Trying again!");
+            final AlertState temp = OverwriteAlertBox.displayOverwriteAlert(newFilename.getText(), (Stage) LogOutButton.getScene().getWindow());
+            String finalNewFilename;
+            if(temp==AlertState.OVERWRITE){
+                finalNewFilename = overwriteFileNaming();
+                sendFile(finalNewFilename, AlertState.OVERWRITE);
+            } else if(temp==AlertState.SEND_NEW){
+                finalNewFilename = newFileNaming();
+                sendFile(finalNewFilename, AlertState.SEND_NEW);
+            } else{
+                compressionLabel.setText("Files sending cancelled.");
                 compressionLabel.setVisible(true);
-            });
-
-            new Thread(compressionTask).start();
+            }
+            updatePagination();
         }
     }
 
