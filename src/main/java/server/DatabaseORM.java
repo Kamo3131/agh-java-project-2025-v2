@@ -5,6 +5,8 @@ import server.db_objects.User;
 import common.PermissionsEnum;
 
 import java.sql.*;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -116,6 +118,16 @@ public class DatabaseORM {
         }
 
         return list;
+    }
+
+    public void updateSavedFile(String userID, String filename, String date) throws SQLException {
+        PreparedStatement stmt = connection.prepareStatement("UPDATE FILES SET DATE=? WHERE FILENAME=? AND UPLOADER_ID=?");
+
+        stmt.setLong(1, Long.parseLong(date));
+        stmt.setString(2, filename);
+        stmt.setString(3, userID);
+
+        stmt.executeUpdate();
     }
 }
 

@@ -12,12 +12,7 @@ public class Main {
         System.out.println("Server starting...");
 
         TCPCommunicator communicator = TCPCommunicator.startServer(8080);
-
-        DatabaseORM db = new DatabaseORM();
-
         ServerInstance serverInstance = new ServerInstance(communicator);
-
-        // test_user = ca1d47fd-b553-4dab-bc31-3cd89cd42fa5
 
         serverInstance.run();
     }

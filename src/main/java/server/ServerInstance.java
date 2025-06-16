@@ -52,6 +52,11 @@ public class ServerInstance {
                     this.handleFileListRequest(file_list_request);
 
                     break;
+                case FILE_UPDATE:
+                    FileUpdateMessage file_update = (FileUpdateMessage)this.communicator.receiveMessage();
+                    this.handleFileUpdateMessage(file_update);
+
+                    break;
             }
         }
     }
@@ -131,5 +136,15 @@ public class ServerInstance {
         };
 
         this.communicator.sendMessage(new FileListResponse(files));
+    }
+
+    private void handleFileUpdateMessage(FileUpdateMessage file_update) throws IOException, SQLException {
+        File file = new File("saved_files/" + file_update.filename());
+
+        if (file.delete()) {
+            this.communicator.receiveAndSaveFile("saved_files/" + file_update.filename());
+        }
+
+        this.db.updateSavedFile(file_update.userID(), file_update.filename(), file_update.date());
     }
 }
