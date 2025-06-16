@@ -14,6 +14,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -209,7 +210,7 @@ public class FileBrowserController {
         communicator.sendFile(file);
     }
     private void TCPupdate(File file) throws IOException {
-        FileUpdateMessage message = new FileUpdateMessage(userID, file.getName(), file.lastModified());
+        FileUpdateMessage message = new FileUpdateMessage(userID, username, file.getName(), file.lastModified(), (double) file.length() /(1024*1024));
         communicator.sendMessage(TCPCommunicator.MessageType.FILE_UPDATE);
         communicator.sendMessage(message);
         communicator.sendFile(file);
@@ -220,6 +221,12 @@ public class FileBrowserController {
         communicator.sendMessage(TCPCommunicator.MessageType.FILE_DOWNLOAD);
         communicator.sendMessage(message);
         communicator.receiveAndSaveFile(filename);
+    }
+
+    private void TCPdelete(String filename) throws IOException {
+        FileDeletionRequest message = new FileDeletionRequest(userID, filename);
+        communicator.sendMessage(TCPCommunicator.MessageType.FILE_DELETION);
+        communicator.sendMessage(message);
     }
 
     /**
@@ -248,14 +255,23 @@ public class FileBrowserController {
             TableRow<FileModel> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
                 if(event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2){
-                   handleRowSelection();
+                   handleRowDownload();
                }
             });
             return row;
         });
+        table.setOnKeyReleased(e -> {
+            if(e.getCode() == KeyCode.DELETE){
+                FileModel fileModel = table.getSelectionModel().getSelectedItem();
+                if(fileModel != null){
+                    System.out.println("DELETE key released on TableView for: " + fileModel);
+                    handleRowDeletion(fileModel);
+                }
+            }
+        });
     }
 
-    private void handleRowSelection(){
+    private void handleRowDownload(){
         FileModel fileModel = table.getSelectionModel().getSelectedItem();
         System.out.println(fileModel.getFilename());
         try {
@@ -267,6 +283,17 @@ public class FileBrowserController {
             };
         } catch (IOException e) {
             System.err.println("Error while decompressing file " + fileModel.getFilename());
+            throw new RuntimeException(e);
+        }
+    }
+    private void handleRowDeletion(FileModel fileModel){
+        System.out.println(fileModel.getFilename());
+        try{
+            TCPdelete(fileModel.getFilename());
+            files.remove(fileModel);
+            updatePagination();
+        } catch (IOException e) {
+            System.err.println("Error deleting a file " + fileModel.getFilename());
             throw new RuntimeException(e);
         }
     }
