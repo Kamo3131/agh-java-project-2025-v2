@@ -120,12 +120,14 @@ public class DatabaseORM {
         return list;
     }
 
-    public void updateSavedFile(String userID, String filename, long date) throws SQLException {
-        PreparedStatement stmt = connection.prepareStatement("UPDATE FILES SET DATE=? WHERE FILENAME=? AND UPLOADER_ID=?");
-        System.out.println("Halo");
+    public void updateSavedFile(String userID, String username, String filename, long date, double size) throws SQLException {
+        PreparedStatement stmt = connection.prepareStatement("UPDATE FILES SET DATE=?, UPLOADER_NAME=?, SIZE=?, WHERE FILENAME=? AND (PERMISSION_TYPE='PUBLIC' OR UPLOADER_ID=?)");
+
         stmt.setLong(1, date);
-        stmt.setString(2, filename);
-        stmt.setString(3, userID);
+        stmt.setString(2, username);
+        stmt.setDouble(3, size);
+        stmt.setString(4, filename);
+        stmt.setString(5, userID);
 
         stmt.executeUpdate();
     }

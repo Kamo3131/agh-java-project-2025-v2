@@ -145,12 +145,12 @@ public class ServerInstance {
 
     private void handleFileUpdateMessage(FileUpdateMessage file_update) throws IOException, SQLException {
         File file = new File("saved_files/" + file_update.filename());
-        System.out.println("Halo");
+
         if (file.delete()) {
             this.communicator.receiveAndSaveFile("saved_files/" + file_update.filename());
         }
 
-        this.db.updateSavedFile(file_update.userID(), file_update.filename(), file_update.date());
+        this.db.updateSavedFile(file_update.userID(), file_update.username(), file_update.filename(), file_update.date(), file_update.size());
     }
 
     private void handleFileDeletionMessage(FileDeletionRequest file_deletion) throws IOException, SQLException {
