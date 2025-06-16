@@ -57,6 +57,11 @@ public class ServerInstance {
                     this.handleFileUpdateMessage(file_update);
 
                     break;
+                case FILE_DELETION:
+                    FileDeletionRequest file_deletion = (FileDeletionRequest)this.communicator.receiveMessage();
+                    this.handleFileDeletionMessage(file_deletion);
+
+                    break;
             }
         }
     }
@@ -146,5 +151,27 @@ public class ServerInstance {
         }
 
         this.db.updateSavedFile(file_update.userID(), file_update.filename(), file_update.date());
+    }
+
+    private void handleFileDeletionMessage(FileDeletionRequest file_deletion) throws IOException, SQLException {
+        SavedFile saved_file = this.db.getSavedFile(file_deletion.filename());
+
+        FileDeletionResponse response = null;
+
+        if (saved_file == null) {
+            response = new FileDeletionResponse(false);
+        }
+        else if (saved_file.permission() == PermissionsEnum.PUBLIC || saved_file.userID().equals(file_deletion.userID())) {
+            File file = new File("saved_files/" + file_deletion.filename());
+            if (file.delete()) {
+                this.db.deleteSavedFile(file_deletion.userID(), file_deletion.filename());
+                response = new FileDeletionResponse(true);
+            }
+        }
+        else {
+            response = new FileDeletionResponse(false);
+        }
+
+        this.communicator.sendMessage(response);
     }
 }

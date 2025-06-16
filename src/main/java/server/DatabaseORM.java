@@ -129,5 +129,14 @@ public class DatabaseORM {
 
         stmt.executeUpdate();
     }
+
+    public void deleteSavedFile(String userID, String filename) throws SQLException {
+        PreparedStatement stmt = connection.prepareStatement("DELETE FROM FILES WHERE FILENAME=? AND (PERMISSION_TYPE='PUBLIC' OR UPLOADER_ID=?)");
+
+        stmt.setString(1, filename);
+        stmt.setString(2, userID);
+
+        stmt.executeUpdate();
+    }
 }
 

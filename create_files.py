@@ -3,7 +3,7 @@ import os
 
 os.mkdir("saved_files")
 
-for i in range(1, 21):
+for i in range(1, 22):
     with open(f"file{i}.txt", "w") as f:
         f.write(f"this is file number {i}\nthis is the second line of file number {i}")
 

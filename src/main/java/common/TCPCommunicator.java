@@ -15,7 +15,8 @@ public class TCPCommunicator {
         FILE_UPLOAD,
         FILE_DOWNLOAD,
         GET_FILE_LIST,
-        FILE_UPDATE
+        FILE_UPDATE,
+        FILE_DELETION
     }
 
     private TCPCommunicator(int port, boolean is_server) throws IOException {
