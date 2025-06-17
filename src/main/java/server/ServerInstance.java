@@ -13,7 +13,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
-public class ServerInstance {
+public class ServerInstance implements Runnable {
     private final TCPCommunicator communicator;
     private final DatabaseORM db;
 
@@ -22,47 +22,56 @@ public class ServerInstance {
         this.db = new DatabaseORM();
     }
 
-    public void run() throws IOException, SQLException, ClassNotFoundException {
-        while (true) {
-            TCPCommunicator.MessageType type = (TCPCommunicator.MessageType)this.communicator.receiveMessage();
+    public void run() {
+        try {
+            boolean clientConnected = true;
 
-            switch (type) {
-                case LOGIN:
-                    UserLoginMessage user_login = (UserLoginMessage)this.communicator.receiveMessage();
-                    this.handleUserLogin(user_login);
+            while (clientConnected) {
+                TCPCommunicator.MessageType type = (TCPCommunicator.MessageType) this.communicator.receiveMessage();
 
-                    break;
-                case REGISTER:
-                    UserLoginMessage user_register = (UserLoginMessage)this.communicator.receiveMessage();
-                    this.handleUserRegistration(user_register);
+                switch (type) {
+                    case LOGIN:
+                        UserLoginMessage user_login = (UserLoginMessage) this.communicator.receiveMessage();
+                        this.handleUserLogin(user_login);
 
-                    break;
-                case FILE_UPLOAD:
-                    FileUploadMessage file_upload = (FileUploadMessage)this.communicator.receiveMessage();
-                    this.handleFileUpload(file_upload);
+                        break;
+                    case REGISTER:
+                        UserLoginMessage user_register = (UserLoginMessage) this.communicator.receiveMessage();
+                        this.handleUserRegistration(user_register);
 
-                    break;
-                case FILE_DOWNLOAD:
-                    FileDownloadMessage file_download = (FileDownloadMessage)this.communicator.receiveMessage();
-                    this.handleFileDownload(file_download);
+                        break;
+                    case FILE_UPLOAD:
+                        FileUploadMessage file_upload = (FileUploadMessage) this.communicator.receiveMessage();
+                        this.handleFileUpload(file_upload);
 
-                    break;
-                case GET_FILE_LIST:
-                    FileListRequest  file_list_request = (FileListRequest)this.communicator.receiveMessage();
-                    this.handleFileListRequest(file_list_request);
+                        break;
+                    case FILE_DOWNLOAD:
+                        FileDownloadMessage file_download = (FileDownloadMessage) this.communicator.receiveMessage();
+                        this.handleFileDownload(file_download);
 
-                    break;
-                case FILE_UPDATE:
-                    FileUpdateMessage file_update = (FileUpdateMessage)this.communicator.receiveMessage();
-                    this.handleFileUpdateMessage(file_update);
+                        break;
+                    case GET_FILE_LIST:
+                        FileListRequest file_list_request = (FileListRequest) this.communicator.receiveMessage();
+                        this.handleFileListRequest(file_list_request);
 
-                    break;
-                case FILE_DELETION:
-                    FileDeletionRequest file_deletion = (FileDeletionRequest)this.communicator.receiveMessage();
-                    this.handleFileDeletionMessage(file_deletion);
+                        break;
+                    case FILE_UPDATE:
+                        FileUpdateMessage file_update = (FileUpdateMessage) this.communicator.receiveMessage();
+                        this.handleFileUpdateMessage(file_update);
 
-                    break;
+                        break;
+                    case FILE_DELETION:
+                        FileDeletionRequest file_deletion = (FileDeletionRequest) this.communicator.receiveMessage();
+                        this.handleFileDeletionMessage(file_deletion);
+
+                        break;
+                    case CLIENT_DISCONNECT:
+                        clientConnected = false;
+                }
             }
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
         }
     }
 
