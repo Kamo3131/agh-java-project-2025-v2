@@ -209,7 +209,7 @@ public class FileBrowserController {
         communicator.sendMessage(message);
         communicator.sendFile(file);
     }
-    private void TCPupdate(File file) throws IOException {
+    private void TCPupdate(File file) throws IOException, ClassNotFoundException {
         FileUpdateMessage message = new FileUpdateMessage(userID, username, file.getName(), file.lastModified(), (double) file.length() /(1024*1024));
         communicator.sendMessage(TCPCommunicator.MessageType.FILE_UPDATE);
         communicator.sendMessage(message);
@@ -397,6 +397,7 @@ public class FileBrowserController {
         for (FileModel file : files){
             existingFilenames.add(file.getBaseName());
         }
+        System.out.println(existingFilenames.contains(filename));
         return existingFilenames.contains(filename);
     }
 
@@ -407,8 +408,11 @@ public class FileBrowserController {
                 seek = file;
             }
         }
-        return seek != null && (seek.getAuthor().equals(username)
+        System.out.println(seek);
+        boolean result = seek != null && (seek.getAuthor().equals(username)
                 || seek.getPermissions().equals(PermissionsEnum.PUBLIC));
+        System.out.println(result);
+        return result;
     }
     private String newFileNaming() {
         String newFilenameString = newFilename.getText();
@@ -460,7 +464,7 @@ public class FileBrowserController {
 
                 handleRemoveFiles();
                 compressedFile.delete();
-            } catch (IOException e) {
+            } catch (IOException | ClassNotFoundException e) {
                 throw new RuntimeException(e);
             }
 
@@ -484,7 +488,7 @@ public class FileBrowserController {
         } else if(zipCompress.sizeSourceFiles()==0) {
             compressionLabel.setText("There are no files to send.");
             compressionLabel.setVisible(true);
-        }else if(filenameExists(newFilename.getText()) && userHasPermissionsToFile(newFilename.getText())){
+        }else if(filenameExists(newFilename.getText()) && userHasPermissionsToFile(newFilename.getText()+".zip")){
             final AlertState temp = OverwriteAlertBox.displayOverwriteAlert(newFilename.getText(), (Stage) LogOutButton.getScene().getWindow());
             String finalNewFilename;
             if(temp==AlertState.OVERWRITE){

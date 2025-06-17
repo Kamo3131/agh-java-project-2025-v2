@@ -121,7 +121,7 @@ public class DatabaseORM {
     }
 
     public void updateSavedFile(String userID, String username, String filename, long date, double size) throws SQLException {
-        PreparedStatement stmt = connection.prepareStatement("UPDATE FILES SET DATE=?, UPLOADER_NAME=?, SIZE=?, WHERE FILENAME=? AND (PERMISSION_TYPE='PUBLIC' OR UPLOADER_ID=?)");
+        PreparedStatement stmt = connection.prepareStatement("UPDATE FILES SET DATE=?, UPLOADER_NAME=?, SIZE=? WHERE FILENAME=? AND (PERMISSION_TYPE='PUBLIC' OR UPLOADER_ID=?)");
 
         stmt.setLong(1, date);
         stmt.setString(2, username);
