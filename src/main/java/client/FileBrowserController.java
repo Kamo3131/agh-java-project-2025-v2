@@ -224,6 +224,7 @@ public class FileBrowserController {
     }
 
     private void TCPdelete(String filename) throws IOException {
+        System.out.println(filename);
         FileDeletionRequest message = new FileDeletionRequest(userID, filename);
         communicator.sendMessage(TCPCommunicator.MessageType.FILE_DELETION);
         communicator.sendMessage(message);
@@ -288,13 +289,17 @@ public class FileBrowserController {
     }
     private void handleRowDeletion(FileModel fileModel){
         System.out.println(fileModel.getFilename());
-        try{
-            TCPdelete(fileModel.getFilename());
-            files.remove(fileModel);
-            updatePagination();
-        } catch (IOException e) {
-            System.err.println("Error deleting a file " + fileModel.getFilename());
-            throw new RuntimeException(e);
+        if(userHasPermissionsToFile(fileModel.getFilename())) {
+            try{
+                TCPdelete(fileModel.getFilename());
+                files.remove(fileModel);
+                updatePagination();
+            } catch (IOException e) {
+                System.err.println("Error deleting a file " + fileModel.getFilename());
+                throw new RuntimeException(e);
+            }
+        } else{
+            System.err.println("User cannot delete file " + fileModel.getFilename());
         }
     }
     /**
@@ -394,6 +399,17 @@ public class FileBrowserController {
         }
         return existingFilenames.contains(filename);
     }
+
+    private boolean userHasPermissionsToFile(String filename){
+        FileModel seek = null;
+        for(FileModel file : files){
+            if(file.getBaseName().equals(filename)){
+                seek = file;
+            }
+        }
+        return seek != null && (seek.getAuthor().equals(username)
+                || seek.getPermissions().equals(PermissionsEnum.PUBLIC));
+    }
     private String newFileNaming() {
         String newFilenameString = newFilename.getText();
         if (newFilenameString == null || newFilenameString.isEmpty()) {
@@ -409,6 +425,7 @@ public class FileBrowserController {
             copyIndex++;
             temp = newFilenameString + "(" + copyIndex + ")";
         }
+        System.out.println(temp);
         return temp;
     }
 
@@ -417,6 +434,7 @@ public class FileBrowserController {
         if (newFilenameString == null || newFilenameString.isEmpty()) {
             newFilenameString = "NewArchive";
         }
+        System.out.println(newFilenameString);
         return newFilenameString;
     }
 
@@ -424,7 +442,7 @@ public class FileBrowserController {
         Task<File> compressionTask = new Task<>() {
             @Override
             protected File call() throws Exception {
-                return zipCompress.compress(basicExportDirName+"/"+finalNewFilename + ".zip");
+                return zipCompress.compress(finalNewFilename + ".zip");
             }
         };
 
@@ -441,6 +459,7 @@ public class FileBrowserController {
                 }
 
                 handleRemoveFiles();
+                compressedFile.delete();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -465,7 +484,7 @@ public class FileBrowserController {
         } else if(zipCompress.sizeSourceFiles()==0) {
             compressionLabel.setText("There are no files to send.");
             compressionLabel.setVisible(true);
-        }else if(filenameExists(newFilename.getText())){
+        }else if(filenameExists(newFilename.getText()) && userHasPermissionsToFile(newFilename.getText())){
             final AlertState temp = OverwriteAlertBox.displayOverwriteAlert(newFilename.getText(), (Stage) LogOutButton.getScene().getWindow());
             String finalNewFilename;
             if(temp==AlertState.OVERWRITE){
@@ -480,7 +499,7 @@ public class FileBrowserController {
             }
             updatePagination();
         } else{
-            String finalNewFilename = newFilename.getText();
+            String finalNewFilename = newFileNaming();
             sendFile(finalNewFilename, AlertState.SEND_NEW);
             updatePagination();
         }
