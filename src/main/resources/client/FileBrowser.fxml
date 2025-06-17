@@ -24,9 +24,9 @@
                         <Button fx:id="ButtonSend" mnemonicParsing="false" onAction="#userSendingAFile" prefHeight="26.0" prefWidth="206.0" text="Send" />
                         <ProgressBar fx:id="SendingProgressBarSend" prefWidth="200.0" progress="0.0" />
                         <Label fx:id="compressionLabel" text="Compression" />
-                        <VBox fx:id="filePathLabels" alignment="TOP_CENTER" prefHeight="0.0" prefWidth="266.0" />
                      </children>
                   </VBox>
+                  <VBox fx:id="filePathLabels" alignment="TOP_CENTER" layoutX="22.0" layoutY="337.0" prefHeight="0.0" prefWidth="266.0" />
                </children></Pane>
          </left>
          <center>

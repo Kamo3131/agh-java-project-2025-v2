@@ -5,14 +5,16 @@ import common.PermissionsEnum;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
-import java.util.TimeZone;
 
 public record SavedFile(String userID, String username, String filename, String contentType, PermissionsEnum permission, double size, String path, long date) implements Serializable {
-    public FileModel toFileModel() {
-        return new FileModel(filename, username, permission, Instant.ofEpochMilli(1000*date)
+    public FileModel toFileModelXT() {
+        long temp = date;
+        if(date < Math.pow(10, 11)){
+            temp *= 1000;
+        }
+
+        return new FileModel(filename, username, permission, Instant.ofEpochMilli(temp)
                 .atZone(ZoneId.systemDefault())
                 .toLocalDateTime(), size);
     }
