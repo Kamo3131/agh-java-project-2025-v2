@@ -223,11 +223,11 @@ public class FileBrowserController {
         communicator.receiveAndSaveFile(filename);
     }
 
-    private void TCPdelete(String filename) throws IOException {
+    private void TCPdelete(String filename) throws IOException, ClassNotFoundException {
         System.out.println(filename);
         FileDeletionRequest message = new FileDeletionRequest(userID, filename);
         communicator.sendMessage(TCPCommunicator.MessageType.FILE_DELETION);
-        communicator.sendMessage(message);
+        communicator.sendAndReceiveMessage(message);
     }
 
     /**
@@ -294,7 +294,7 @@ public class FileBrowserController {
                 TCPdelete(fileModel.getFilename());
                 files.remove(fileModel);
                 updatePagination();
-            } catch (IOException e) {
+            } catch (IOException | ClassNotFoundException e) {
                 System.err.println("Error deleting a file " + fileModel.getFilename());
                 throw new RuntimeException(e);
             }
