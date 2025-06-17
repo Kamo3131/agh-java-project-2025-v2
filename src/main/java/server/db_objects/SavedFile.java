@@ -12,7 +12,7 @@ import java.util.TimeZone;
 
 public record SavedFile(String userID, String username, String filename, String contentType, PermissionsEnum permission, double size, String path, long date) implements Serializable {
     public FileModel toFileModel() {
-        return new FileModel(filename, username, permission, Instant.ofEpochMilli(1000 * date)
+        return new FileModel(filename, username, permission, Instant.ofEpochMilli(date)
                 .atZone(ZoneId.systemDefault())
                 .toLocalDateTime(), size);
     }
