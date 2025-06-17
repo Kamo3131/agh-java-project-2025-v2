@@ -70,7 +70,6 @@ public class FileBrowserController {
     private String basicImportDirName = "ImportDir";
     private TCPCommunicator communicator;
 
-
     /**
      * Sets the username and the userID of the logged-in user. Loads files from database.
      * @param username the name of the user
@@ -83,6 +82,10 @@ public class FileBrowserController {
 
         getFilesFromDB(this.userID);
         updatePagination();
+    }
+
+    public void setCommunicator(TCPCommunicator communicator) {
+        this.communicator = communicator;
     }
 
     /**
@@ -105,13 +108,6 @@ public class FileBrowserController {
      */
     @FXML
     private void initialize() throws IOException {
-        try {
-            communicator = TCPCommunicator.startClient(8080);
-        }
-        catch (IOException e) {
-            System.out.println(e.getMessage());
-        }
-
         this.permissionsLabel.setVisible(false);
         compressionLabel.setVisible(false);
         setPermissions();

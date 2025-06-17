@@ -1,6 +1,8 @@
 package client;
 
 import common.TCPCommunicator;
+import common.messages.ConnectionRequest;
+import common.messages.ConnectionResponse;
 import common.messages.LoginValidationMessage;
 import common.messages.UserLoginMessage;
 import javafx.fxml.FXML;
@@ -58,20 +60,26 @@ public class SignLogController {
     private Label HollowSignSuccesLabel;
 
     private TCPCommunicator communicator;
-
-
     /**
      * Initializes GUI components by setting status labels to invisible.
      */
     @FXML
-    private void initialize() throws IOException {
+    private void initialize() throws IOException, ClassNotFoundException {
+        int client_port = ((ConnectionResponse)(TCPCommunicator.startClient(8080).sendAndReceiveMessage(new ConnectionRequest()))).port();
+
+//        client_port = 1025;
+
         HollowLoginLabel.setVisible(false);
         HollowSignLabel.setVisible(false);
         HollowSignSuccesLabel.setVisible(false);
         HollowLogSuccesLabel.setVisible(false);
         // Inicjalizacja przycisków i innych komponentów
 
-        this.communicator = TCPCommunicator.startClient(8080);
+        this.communicator = TCPCommunicator.startClient(client_port);
+    }
+
+    public void closeConnection() throws IOException {
+        communicator.sendMessage(TCPCommunicator.MessageType.CLIENT_DISCONNECT);
     }
 
     /**
@@ -209,6 +217,7 @@ public class SignLogController {
 
 
         FileBrowserController fileBrowserController = loader.getController();
+        fileBrowserController.setCommunicator(communicator);
         fileBrowserController.setUserAndLoadFiles(username, userID);
 
         // Show the new scene

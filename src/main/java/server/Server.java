@@ -6,7 +6,6 @@ import common.messages.ConnectionResponse;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Stack;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -52,6 +51,6 @@ public class Server {
 
         Collections.shuffle(ports);
 
-        return new ArrayBlockingQueue<Integer>(1024, true, ports);
+        return new ArrayBlockingQueue<>(1024, true, ports);
     }
 }

@@ -21,5 +21,14 @@ public class SignLog extends Application {
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
         primaryStage.show();
+
+        primaryStage.setOnCloseRequest(event -> {
+            SignLogController controller =  (SignLogController) fxmlLoader.getController();
+//            try {
+//                controller.closeConnection();
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+        });
     }
 }
