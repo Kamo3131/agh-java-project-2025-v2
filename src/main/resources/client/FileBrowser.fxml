@@ -49,6 +49,7 @@
       <ToolBar prefHeight="11.0" prefWidth="800.0" BorderPane.alignment="CENTER">
         <items>
           <Button fx:id="LogOutButton" mnemonicParsing="false" onAction="#handleLogOut" prefHeight="26.0" prefWidth="79.0" text="Log out" />
+            <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#refresh" prefHeight="26.0" prefWidth="79.0" text="Refresh" />
             <ImageView fitHeight="26.0" fitWidth="26.0" pickOnBounds="true" preserveRatio="true">
                <image>
                   <Image url="@user.png" />
