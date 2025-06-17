@@ -446,9 +446,15 @@ public class FileBrowserController {
         Task<File> compressionTask = new Task<>() {
             @Override
             protected File call() throws Exception {
-                return zipCompress.compress(finalNewFilename + ".zip");
+                updateProgress(0, 100);
+                return zipCompress.compress(finalNewFilename + ".zip", progress ->{
+                    updateProgress(progress, 100);
+                });
             }
         };
+
+        SendingProgressBarSend.progressProperty().bind(compressionTask.progressProperty());
+        SendingProgressBarSend.visibleProperty().bind(compressionTask.runningProperty());
 
         compressionTask.setOnSucceeded(event -> {
             File compressedFile = compressionTask.getValue();
