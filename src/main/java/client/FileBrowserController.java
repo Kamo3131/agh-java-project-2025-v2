@@ -204,7 +204,7 @@ public class FileBrowserController {
 
 
     private void TCPupload(File file) throws IOException {
-        FileUploadMessage message = new FileUploadMessage(file.getName(), username, userID, "Archive", permissions, file.length()/(1024*1024), file.lastModified());
+        FileUploadMessage message = new FileUploadMessage(file.getName(), username, userID, "Archive", permissions, file.length()/(1024*1024), file.lastModified()/1000);
         communicator.sendMessage(TCPCommunicator.MessageType.FILE_UPLOAD);
         communicator.sendMessage(message);
         communicator.sendFile(file);
@@ -403,7 +403,7 @@ public class FileBrowserController {
     private boolean userHasPermissionsToFile(String filename){
         FileModel seek = null;
         for(FileModel file : files){
-            if(file.getBaseName().equals(filename)){
+            if(file.getFilename().equals(filename)){
                 seek = file;
             }
         }
