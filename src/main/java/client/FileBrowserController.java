@@ -210,7 +210,7 @@ public class FileBrowserController {
         communicator.sendFile(file);
     }
     private void TCPupdate(File file) throws IOException, ClassNotFoundException {
-        FileUpdateMessage message = new FileUpdateMessage(userID, username, file.getName(), file.lastModified(), file.length() /(1024*1024));
+        FileUpdateMessage message = new FileUpdateMessage(userID, username, file.getName(), file.lastModified(), (double) file.length() /(1024*1024));
         communicator.sendMessage(TCPCommunicator.MessageType.FILE_UPDATE);
         communicator.sendMessage(message);
         communicator.sendFile(file);
