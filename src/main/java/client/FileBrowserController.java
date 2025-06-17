@@ -41,6 +41,7 @@ public class FileBrowserController {
     @FXML private Button AddFileButtonSend;
     @FXML private MenuButton PermissionsMenuSend;
     @FXML private Button ButtonSend;
+    @FXML private Button refreshButton;
     @FXML private ProgressBar SendingProgressBarSend;
     @FXML private VBox filePathLabels;
     @FXML private Label permissionsLabel;
@@ -116,6 +117,12 @@ public class FileBrowserController {
         //files from this dir to List<File> and puts this List in the tableview
 //        addFiles(getFilesFromDirectory(createBasicDirectory()));
 
+    }
+
+    public void refresh() {
+        files.clear();
+        getFilesFromDB(this.userID);
+        updatePagination();
     }
 
     private File createBasicDirectory(){
