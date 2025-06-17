@@ -173,7 +173,7 @@ public class FileBrowserController {
             FileListResponse response = (FileListResponse)communicator.sendAndReceiveMessage(new FileListRequest(userID, 0, FileListRequest.ListType.ALL));
 
             for (SavedFile file : response.files()) {
-                files.add(file.toFileModel());
+                files.add(file.toFileModelXT());
             }
         }
         catch (IOException | ClassNotFoundException e) {
